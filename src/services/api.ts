@@ -1,28 +1,35 @@
+
+// api.ts
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:3000/api';
 
+// Generic helper to handle errors gracefully
+const safeRequest = async <T>(request: Promise<any>): Promise<{ data?: T; error?: string }> => {
+  try {
+    const response = await request;
+    return { data: response.data };
+  } catch (error: any) {
+    return { error: error.response?.data?.message || 'Request failed' };
+  }
+};
+
 export const getRoles = async () => {
-  const response = await axios.get(`${API_BASE_URL}/roles`);
-  return response.data;
+  return safeRequest<any[]>(axios.get(`${API_BASE_URL}/roles`));
 };
 
 export const createRole = async (name: string, permissions: number[]) => {
-  const response = await axios.post(`${API_BASE_URL}/roles`, { name, permissions });
-  return response.data;
+  return safeRequest(axios.post(`${API_BASE_URL}/roles`, { name, permissions }));
 };
 
 export const getPermissions = async () => {
-  const response = await axios.get(`${API_BASE_URL}/permissions`);
-  return response.data;
+  return safeRequest<any[]>(axios.get(`${API_BASE_URL}/permissions`));
 };
 
 export const updateRole = async (id: string, name: string, permissions: number[]) => {
-  const response = await axios.put(`${API_BASE_URL}/roles/${id}`, { name, permissions });
-  return response.data;
+  return safeRequest(axios.put(`${API_BASE_URL}/roles/${id}`, { name, permissions }));
 };
 
 export const deleteRole = async (id: string) => {
-  const response = await axios.delete(`${API_BASE_URL}/roles/${id}`);
-  return response.data;
+  return safeRequest(axios.delete(`${API_BASE_URL}/roles/${id}`));
 };

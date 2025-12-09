@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { permissionsMap } from '../../utils/permissions';
+import { permissionsMap, formatPermissionName } from '../../utils/permissions';
 import { FaTimes } from 'react-icons/fa';
 
 interface RoleModalProps {
@@ -11,7 +10,7 @@ interface RoleModalProps {
   onClose: () => void;
   onSave: () => void;
   onNameChange: (value: string) => void;
-  onTogglePermission: (code: number) => void;
+  onTogglePermission: (code : number) => void;
 }
 
 const RoleModal: React.FC<RoleModalProps> = ({
@@ -26,7 +25,7 @@ const RoleModal: React.FC<RoleModalProps> = ({
 }) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-500/30 backdrop-blur-md z-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8"> {/* Bigger modal */}
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-semibold text-gray-800">
@@ -41,9 +40,7 @@ const RoleModal: React.FC<RoleModalProps> = ({
         </div>
 
         {/* Error Message */}
-        {errorMessage && (
-          <p className="text-red-500 text-sm mb-4">{errorMessage}</p>
-        )}
+
 
         {/* Role Name Input */}
         <input
@@ -53,20 +50,22 @@ const RoleModal: React.FC<RoleModalProps> = ({
           onChange={(e) => onNameChange(e.target.value)}
           className="w-full border border-gray-300 rounded px-3 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-
+        {errorMessage && (
+          <p className="text-red-500 text-sm mb-4">{errorMessage}</p>
+        )}
         {/* Permissions */}
         <div>
           <h4 className="text-gray-700 font-medium mb-3">Select Permissions:</h4>
-          <div className="flex flex-col gap-3"> {/* Vertical layout */}
+          <div className="flex flex-col gap-3">
             {Object.entries(permissionsMap).map(([key, value]) => (
               <label key={value} className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   checked={selectedPermissions.includes(value)}
                   onChange={() => onTogglePermission(value)}
-                  className="w-4 h-4" // Default checkbox size
+                  className="w-4 h-4"
                 />
-                <span className="text-gray-700">{key}</span>
+                <span className="text-gray-700">{formatPermissionName(key)}</span>
               </label>
             ))}
           </div>
