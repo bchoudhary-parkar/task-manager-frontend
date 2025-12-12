@@ -1,23 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { getRoles, createRole, updateRole, deleteRole } from './../services/api';
 import RoleModal from './../components/role_management/RoleModal';
+import RoleInfoModal from './../components/role_management/RoleInfoModal';
 import RoleList from './../components/role_management/RoleList';
 import SearchFilterBar from './../components/role_management/SearchFilterBar';
+import Pagination from './../components/role_management/Pagination';
 import { permissionsMap } from './../utils/permissions';
 import DeleteConfirmationModal from '../components/role_management/DeleteConfirmationModal';
 import { FaTrash } from 'react-icons/fa';
+import { useDebounce } from '../services/useDebounce';
 
 const RoleManagementPage: React.FC = () => {
   // Role data
   const [roles, setRoles] = useState<any[]>([]);
-  const [filteredRoles, setFilteredRoles] = useState<any[]>([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   // Form states
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState<number[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editRoleId, setEditRoleId] = useState<string | null>(null);
@@ -27,72 +39,58 @@ const RoleManagementPage: React.FC = () => {
   const [roleToDelete, setRoleToDelete] = useState<string[]>([]);
   const [roleNamesToDelete, setRoleNamesToDelete] = useState<string[]>([]);
 
+  // Info modal state
+  const [selectedRoleForInfo, setSelectedRoleForInfo] = useState<any>(null);
+
   // Checkbox selection
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
 
-  // Search and filter states
+  // Search and pagination states
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterColumn, setFilterColumn] = useState<'all' | 'role' | 'permissions'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit] = useState(10);
+  const [loading, setLoading] = useState(false);
 
-  // Effects
+  // Debounce search term
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  // Fetch roles when debounced search or page changes
   useEffect(() => {
     fetchRoles();
-  }, []);
+  }, [debouncedSearch, currentPage]);
 
+  // Reset to page 1 when search changes
   useEffect(() => {
-    applySearchAndFilter();
-  }, [roles, searchTerm, filterColumn]);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [searchTerm]);
 
   // API Calls
   const fetchRoles = async () => {
-    const { data, error } = await getRoles();
+    setLoading(true);
+    const { data, error } = await getRoles({
+      search: debouncedSearch,
+      page: currentPage,
+      limit: limit,
+      sortBy: 'createdAt',
+      sortOrder: 'desc'
+    });
+
     if (data) {
-      setRoles(data);
+      setRoles(data.data || []);
+      setPagination(data.pagination);
     } else {
       console.error(error);
     }
+    setLoading(false);
     setSelectedRoleIds([]);
-  };
-
-  // Search and Filter
-  const applySearchAndFilter = () => {
-    if (!searchTerm.trim()) {
-      setFilteredRoles(roles);
-      return;
-    }
-
-    const lowerSearch = searchTerm.toLowerCase();
-
-    const filtered = roles.filter(role => {
-      const permissionNames = role.permissions
-        .filter((code: number) => code !== permissionsMap.all)
-        .map((code: number) => {
-          const key = Object.keys(permissionsMap).find(k => permissionsMap[k] === code);
-          return key ? key.replace(/_/g, ' ') : '';
-        })
-        .join(', ')
-        .toLowerCase();
-
-      switch (filterColumn) {
-        case 'role':
-          return role.name.toLowerCase().includes(lowerSearch);
-        case 'permissions':
-          return permissionNames.includes(lowerSearch);
-        case 'all':
-        default:
-          return (
-            role.name.toLowerCase().includes(lowerSearch) ||
-            permissionNames.includes(lowerSearch)
-          );
-      }
-    });
-
-    setFilteredRoles(filtered);
   };
 
   // Form Handlers
   const resetFormState = () => {
     setName('');
+    setDescription('');
     setSelectedPermissions([]);
     setIsEditMode(false);
     setEditRoleId(null);
@@ -108,8 +106,8 @@ const RoleManagementPage: React.FC = () => {
     const permissionsToSave = selectedPermissions.filter(p => p !== permissionsMap.all);
 
     const { error } = isEditMode && editRoleId
-      ? await updateRole(editRoleId, name, permissionsToSave)
-      : await createRole(name, permissionsToSave);
+      ? await updateRole(editRoleId, name, description, permissionsToSave)
+      : await createRole(name, description, permissionsToSave);
 
     if (error) {
       setErrorMessage(error);
@@ -154,10 +152,19 @@ const RoleManagementPage: React.FC = () => {
     const role = roles.find(r => r._id === roleId);
     if (role) {
       setName(role.name);
+      setDescription(role.description || '');
       setSelectedPermissions(role.permissions);
       setIsEditMode(true);
       setEditRoleId(role._id);
       setShowModal(true);
+    }
+  };
+
+  const handleInfoClick = (roleId: string) => {
+    const role = roles.find(r => r._id === roleId);
+    if (role) {
+      setSelectedRoleForInfo(role);
+      setShowInfoModal(true);
     }
   };
 
@@ -171,23 +178,33 @@ const RoleManagementPage: React.FC = () => {
   };
 
   const confirmDelete = async () => {
-    if (roleToDelete.length > 0) {
-      // Delete each role one by one using the existing DELETE endpoint
-      const deletePromises = roleToDelete.map(id => deleteRole(id));
-      const results = await Promise.all(deletePromises);
-      
-      const errors = results.filter(r => r.error);
-      if (errors.length > 0) {
-        setErrorMessage(`Failed to delete ${errors.length} role(s)`);
-      }
-      
-      fetchRoles();
-      setShowDeleteModal(false);
-      setRoleToDelete([]);
-      setRoleNamesToDelete([]);
-      setSelectedRoleIds([]);
+  if (roleToDelete.length > 0) {
+    const deletePromises = roleToDelete.map(id => deleteRole(id));
+    const results = await Promise.all(deletePromises);
+    
+    const errors = results.filter(r => r.error);
+    if (errors.length > 0) {
+      setErrorMessage(`Failed to delete ${errors.length} role(s)`);
     }
-  };
+    
+    // Calculate if we need to go to previous page
+    const remainingRolesOnCurrentPage = roles.length - roleToDelete.length;
+    const shouldGoToPreviousPage = (remainingRolesOnCurrentPage === 0 && currentPage > 1);
+    
+    // Update page before fetching
+    if (shouldGoToPreviousPage) {
+      setCurrentPage(currentPage - 1);
+    } else {
+      // Just refresh current page
+      fetchRoles();
+    }
+    
+    setShowDeleteModal(false);
+    setRoleToDelete([]);
+    setRoleNamesToDelete([]);
+    setSelectedRoleIds([]);
+  }
+};
 
   // Selection Handlers
   const handleSelectRole = (roleId: string) => {
@@ -197,13 +214,12 @@ const RoleManagementPage: React.FC = () => {
   };
 
   const handleSelectAll = () => {
-    const allSelected = filteredRoles.length > 0 && selectedRoleIds.length === filteredRoles.length;
+    const allSelected = roles.length > 0 && selectedRoleIds.length === roles.length;
+    
     if (allSelected) {
-      // If all are selected, uncheck all
       setSelectedRoleIds([]);
     } else {
-      // If not all selected, select all filtered roles
-      setSelectedRoleIds(filteredRoles.map(role => role._id));
+      setSelectedRoleIds(roles.map(role => role._id));
     }
   };
 
@@ -226,7 +242,12 @@ const RoleManagementPage: React.FC = () => {
 
   const handleSearchClear = () => {
     setSearchTerm('');
-    setFilterColumn('all');
+    setCurrentPage(1);
+  };
+
+  // Pagination Handlers
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -242,14 +263,11 @@ const RoleManagementPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Search and Filter */}
+      {/* Search Bar */}
       <SearchFilterBar
         searchTerm={searchTerm}
-        filterColumn={filterColumn}
-        resultCount={filteredRoles.length}
-        totalCount={roles.length}
+        resultCount={pagination.totalItems}
         onSearchChange={setSearchTerm}
-        onFilterChange={setFilterColumn}
         onClear={handleSearchClear}
       />
 
@@ -271,12 +289,24 @@ const RoleManagementPage: React.FC = () => {
         <RoleModal
           isEditMode={isEditMode}
           name={name}
+          description={description}
           selectedPermissions={selectedPermissions}
           errorMessage={errorMessage}
           onClose={handleModalClose}
           onSave={handleCreateOrUpdateRole}
           onNameChange={setName}
+          onDescriptionChange={setDescription}
           onTogglePermission={togglePermission}
+        />
+      )}
+
+      {showInfoModal && selectedRoleForInfo && (
+        <RoleInfoModal
+          role={selectedRoleForInfo}
+          onClose={() => {
+            setShowInfoModal(false);
+            setSelectedRoleForInfo(null);
+          }}
         />
       )}
 
@@ -288,16 +318,32 @@ const RoleManagementPage: React.FC = () => {
         />
       )}
 
-      {/* Role List or Empty State */}
-      {filteredRoles.length > 0 ? (
-        <RoleList
-          roles={filteredRoles}
-          selectedRoleIds={selectedRoleIds}
-          onEdit={handleEditClick}
-          onDelete={(id) => handleDeleteClick([id])}
-          onSelectRole={handleSelectRole}
-          onSelectAll={handleSelectAll}
-        />
+      {/* Loading State */}
+      {loading ? (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+          <p className="text-gray-500 text-lg">Loading...</p>
+        </div>
+      ) : roles.length > 0 ? (
+        <>
+          <RoleList
+            roles={roles}
+            selectedRoleIds={selectedRoleIds}
+            onEdit={handleEditClick}
+            onDelete={(id) => handleDeleteClick([id])}
+            onSelectRole={handleSelectRole}
+            onSelectAll={handleSelectAll}
+            onInfo={handleInfoClick}
+          />
+          
+          {/* Pagination */}
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            totalItems={pagination.totalItems}
+            itemsPerPage={pagination.itemsPerPage}
+            onPageChange={handlePageChange}
+          />
+        </>
       ) : (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
           <p className="text-gray-500 text-lg">

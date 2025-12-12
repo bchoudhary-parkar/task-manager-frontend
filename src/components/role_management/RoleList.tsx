@@ -2,12 +2,13 @@ import React from 'react';
 import RoleCard from './RoleCard';
 
 interface RoleListProps {
-  roles: { _id: string; name: string; permissions: number[] }[];
+  roles: { _id: string; name: string; description: string; permissions: number[] }[];
   selectedRoleIds: string[];
   onEdit: (roleId: string) => void;
   onDelete: (roleId: string) => void;
   onSelectRole: (roleId: string) => void;
   onSelectAll: () => void;
+  onInfo: (roleId: string) => void;
 }
 
 const RoleList: React.FC<RoleListProps> = ({ 
@@ -16,7 +17,8 @@ const RoleList: React.FC<RoleListProps> = ({
   onEdit, 
   onDelete,
   onSelectRole,
-  onSelectAll
+  onSelectAll,
+  onInfo
 }) => {
   const allSelected = roles.length > 0 && selectedRoleIds.length === roles.length;
 
@@ -25,7 +27,7 @@ const RoleList: React.FC<RoleListProps> = ({
       <table className="min-w-full text-left text-sm">
         <thead className="bg-gray-50 text-gray-700 font-semibold">
           <tr>
-            <th className="px-6 py-3">
+            <th className="px-6 py-3 w-12">
               <input
                 type="checkbox"
                 checked={allSelected}
@@ -35,7 +37,9 @@ const RoleList: React.FC<RoleListProps> = ({
               />
             </th>
             <th className="px-6 py-3">Role</th>
+            <th className="px-6 py-3">Description</th>
             <th className="px-6 py-3">Permissions</th>
+            <th className="px-6 py-3 text-center">Info</th>
             <th className="px-6 py-3 text-center">Edit</th>
             <th className="px-6 py-3 text-center">Delete</th>
           </tr>
@@ -49,6 +53,7 @@ const RoleList: React.FC<RoleListProps> = ({
               onEdit={() => onEdit(role._id)}
               onDelete={() => onDelete(role._id)}
               onSelect={() => onSelectRole(role._id)}
+              onInfo={() => onInfo(role._id)}
             />
           ))}
         </tbody>

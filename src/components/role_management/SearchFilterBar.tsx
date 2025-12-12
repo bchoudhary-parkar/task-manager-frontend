@@ -3,21 +3,15 @@ import { FaSearch } from 'react-icons/fa';
 
 interface SearchFilterBarProps {
   searchTerm: string;
-  filterColumn: 'all' | 'role' | 'permissions';
   resultCount: number;
-  totalCount: number;
   onSearchChange: (value: string) => void;
-  onFilterChange: (value: 'all' | 'role' | 'permissions') => void;
   onClear: () => void;
 }
 
 const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
   searchTerm,
-  filterColumn,
   resultCount,
-  totalCount,
   onSearchChange,
-  onFilterChange,
   onClear
 }) => {
   return (
@@ -28,24 +22,11 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
           <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
-            placeholder="Search roles..."
+            placeholder="Search roles by name or description..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-        </div>
-
-        {/* Filter Dropdown */}
-        <div className="md:w-48">
-          <select
-            value={filterColumn}
-            onChange={(e) => onFilterChange(e.target.value as 'all' | 'role' | 'permissions')}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">All Columns</option>
-            <option value="role">Role Name</option>
-            <option value="permissions">Permissions</option>
-          </select>
         </div>
 
         {/* Clear Button */}
@@ -60,11 +41,9 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
       </div>
 
       {/* Results Count */}
-      {searchTerm && (
-        <p className="text-sm text-gray-600 mt-3">
-          Found {resultCount} of {totalCount} role{resultCount !== 1 ? 's' : ''}
-        </p>
-      )}
+      <p className="text-sm text-gray-600 mt-3">
+        Total: {resultCount} role{resultCount !== 1 ? 's' : ''}
+      </p>
     </div>
   );
 };
