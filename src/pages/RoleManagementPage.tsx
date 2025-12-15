@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { getRoles, createRole, updateRole, deleteRole } from './../services/api';
-import RoleModal from './../components/role_management/RoleModal';
-import RoleInfoModal from './../components/role_management/RoleInfoModal';
-import RoleList from './../components/role_management/RoleList';
-import SearchFilterBar from './../components/role_management/SearchFilterBar';
-import Pagination from './../components/role_management/Pagination';
+import { getRoles, createRole, updateRole, deleteRole } from '../api/roleApi';
+import RoleModal from '../components/role/RoleModal';
+import RoleInfoModal from '../components/role/RoleInfoModal';
+import RoleList from '../components/role/RoleList';
+import SearchFilterBar from '../components/common/SearchBar';
+import Pagination from '../components/common/Pagination';
 import { permissionsMap } from './../utils/permissions';
-import DeleteConfirmationModal from '../components/role_management/DeleteConfirmationModal';
+import DeleteConfirmationModal from '../components/role/DeleteConfirmationModal';
 import { FaTrash } from 'react-icons/fa';
-import { useDebounce } from '../services/useDebounce';
+import { useDebounce } from '../hooks/useDebounce';
 
 const RoleManagementPage: React.FC = () => {
   // Role data
