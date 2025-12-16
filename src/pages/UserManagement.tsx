@@ -4,10 +4,10 @@ import { fetchUsers, deleteUserApi, addUserApi, updateUserApi } from '../api/use
 import UserTable from '../components/user/UserTable';
 import UserDetailsModal from '../components/user/UserDetailsModal';
 import AddUserModal from '../components/user/AddUserModal.js';
-import DeleteConfirmationModal from '../components/role/DeleteConfirmationModal';
+import DeleteConfirmModal from '../components//user/DeleteConfirmModal';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
-
+import DashboardLayout from '../layouts/DashboardLayout.tsx';
 function UserManagementPage() {
   
   const [users, setUsers] = useState<User[]>([]);
@@ -101,6 +101,7 @@ function UserManagementPage() {
   };
 
   return (
+    <DashboardLayout>
     <div className="p-8">
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">User Management</h1>
@@ -170,12 +171,13 @@ function UserManagementPage() {
       )}
 
       {userToDelete && (
-        <DeleteConfirmationModal
+        <DeleteConfirmModal
           onClose={() => setUserToDelete(null)}
           onConfirm={confirmDelete}
         />
       )}
     </div>
+    </DashboardLayout>
   );
 }
 

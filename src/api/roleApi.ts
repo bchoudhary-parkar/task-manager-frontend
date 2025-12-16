@@ -1,6 +1,5 @@
-// src/api/roleApi.ts
 import axiosInstance from './axiosInstance';
-import type { RoleListResponse, RoleResponse } from '../types/role.types';
+import type { RoleListResponse, RoleResponse, Role } from '../types/role.types';
 
 interface GetRolesParams {
   page?: number;
@@ -35,4 +34,41 @@ export const roleApi = {
     const response = await axiosInstance.delete(`/api/role/roles/${id}`);
     return response.data;
   },
+};
+
+// Wrapper functions for backward compatibility
+export const getRoles = async (params?: GetRolesParams) => {
+  try {
+    const data = await roleApi.getRoles(params);
+    return { data, error: null };
+  } catch (error: any) {
+    return { data: null, error: error.response?.data?.message || 'Failed to fetch roles' };
+  }
+};
+
+export const createRole = async (name: string, description: string, permissions: number[]) => {
+  try {
+    const data = await roleApi.createRole({ name, description, permissions });
+    return { data, error: null };
+  } catch (error: any) {
+    return { data: null, error: error.response?.data?.message || 'Failed to create role' };
+  }
+};
+
+export const updateRole = async (id: string, name: string, description: string, permissions: number[]) => {
+  try {
+    const data = await roleApi.updateRole(id, { name, description, permissions });
+    return { data, error: null };
+  } catch (error: any) {
+    return { data: null, error: error.response?.data?.message || 'Failed to update role' };
+  }
+};
+
+export const deleteRole = async (id: string) => {
+  try {
+    const data = await roleApi.deleteRole(id);
+    return { data, error: null };
+  } catch (error: any) {
+    return { data: null, error: error.response?.data?.message || 'Failed to delete role' };
+  }
 };

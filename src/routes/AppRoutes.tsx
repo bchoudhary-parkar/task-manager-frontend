@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
+import PublicRoute from './PublicRoute';
 
 // Auth Pages
 import Login from '../pages/auth/Login';
@@ -17,38 +18,45 @@ const AppRoutes: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
+        {/* Public Routes - Redirect to dashboard if already logged in */}
+        <Route
+          path="/login"
+          element={
+            <PublicRoute children={<Login />} />
+            }
+        />
+        <Route
+          path="/signup"
+          element={
+            <PublicRoute children={<Signup />} />
+          }
+        />
+        <Route
+          path="/verify-email"
+          element={
+            <PublicRoute children={ <VerifyEmail />}/>
+          }
+        />
 
-        {/* Protected Routes */}
+        {/* Protected Routes - All wrapped with DashboardLayout */}
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
+            <ProtectedRoute children={<Dashboard/>}/>
           }
         />
         <Route
           path="/roles"
           element={
-            <ProtectedRoute>
-              <RoleManagement />
-            </ProtectedRoute>
+            <ProtectedRoute children={<RoleManagement />}/>
           }
         />
         <Route
           path="/users"
           element={
-            <ProtectedRoute>
-              <UserManagement />
-            </ProtectedRoute>
+            <ProtectedRoute children={<UserManagement />} />                
           }
         />
-
-        {/* Redirect */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

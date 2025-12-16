@@ -1,4 +1,3 @@
-// src/api/userApi.ts
 import axiosInstance from './axiosInstance';
 import type { User, UserListResponse, UserResponse } from '../types/user.types';
 
@@ -41,4 +40,35 @@ export const userApi = {
     const response = await axiosInstance.delete(`/api/user/${id}`);
     return response.data;
   },
+};
+
+// Wrapper functions for backward compatibility with UserManagementPage
+export const fetchUsers = async (page: number = 1, limit: number = 10, search: string = '') => {
+  const response = await userApi.getUsers({ page, limit, search });
+  return {
+    data: response.data,
+    currentPage: response.pagination?.currentPage || response.currentPage || page,
+    totalPages: response.pagination?.totalPages || response.totalPages || 1,
+    totalItems: response.pagination?.totalItems || response.totalItems || 0,
+  };
+};
+
+export const addUserApi = async (userData: any): Promise<User> => {
+  const response = await userApi.createUser(userData);
+  if (!response.data) {
+    throw new Error(response.message || 'Failed to create user');
+  }
+  return response.data;
+};
+
+export const updateUserApi = async (id: string, updates: Partial<User>): Promise<User> => {
+  const response = await userApi.updateUser(id, updates);
+  if (!response.data) {
+    throw new Error(response.message || 'Failed to update user');
+  }
+  return response.data;
+};
+
+export const deleteUserApi = async (id: string): Promise<void> => {
+  await userApi.deleteUser(id);
 };

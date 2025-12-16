@@ -1,12 +1,13 @@
-// src/routes/ProtectedRoute.tsx
+// src/routes/PublicRoute.tsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-interface ProtectedRouteProps {
+
+interface PublicRouteProps {
   children: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   const { token, isLoading } = useAuth();
 
   if (isLoading) {
@@ -17,13 +18,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  if (!token) {
-    return <Navigate to="/login" replace />;
+  // If user is authenticated, redirect to dashboard
+  if (token) {
+    return <Navigate to="/dashboard" replace />;
   }
 
-  return <>{
-    children
-    }</>;
+  return <>{children}</>;
 };
 
-export default ProtectedRoute;
+export default PublicRoute;

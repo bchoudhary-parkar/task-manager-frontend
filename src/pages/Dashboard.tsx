@@ -29,8 +29,8 @@ const Dashboard: React.FC = () => {
       stats: 'Manage roles'
     },
     {
-      title: 'Activity',
-      description: 'View system activity and logs',
+      title: 'Task Management',
+      description: 'View Task activity and logs',
       icon: Activity,
       color: 'bg-purple-500',
       hoverColor: 'hover:bg-purple-600',

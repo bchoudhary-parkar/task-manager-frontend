@@ -10,6 +10,7 @@ export interface User {
     permissions: number[];
   };
   permissions?: number[];
+  status?: 'available' | 'not available';
   photoUrl?: string;
 }
 

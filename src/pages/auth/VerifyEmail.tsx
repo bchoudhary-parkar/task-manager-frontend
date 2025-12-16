@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import Authlayout from '../../layouts/Authlayout';
 import { useAuth } from '../../context/AuthContext';
-import { authService } from '../../utils/authService';
+import { authService } from '../../services/authService';
 
 const VerifyEmail: React.FC = () => {
   const [otp, setOtp] = useState<string[]>(new Array(6).fill(""));

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Authlayout from '../../layouts/Authlayout';
 import Input from '../../components/common/Input';
 import { useAuth } from '../../context/AuthContext';
-import { authService } from '../../utils/authService';
+import { authService } from '../../services/authService';
 import type { ValidationErrors } from '../../utils/validation';
 import { validateSignupForm } from '../../utils/validation';
 import GoogleAuthButton from '../../components/auth/GoogleAuthButton';

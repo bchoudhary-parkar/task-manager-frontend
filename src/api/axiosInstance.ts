@@ -1,6 +1,3 @@
-
-// src/api/axiosInstance.ts
-
 import axios from 'axios';
 import type {
   AxiosInstance,
@@ -24,7 +21,6 @@ axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Ensure headers object exists
       config.headers = config.headers ?? {};
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -40,7 +36,6 @@ axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError<{ message: string }>) => {
     const status = error.response?.status;
-
     if (status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -48,9 +43,8 @@ axiosInstance.interceptors.response.use(
         window.location.href = '/login';
       }
     }
-
     return Promise.reject(error);
   }
 );
 
-export default axiosInstance;
+export default axiosInstance

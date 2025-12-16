@@ -10,6 +10,8 @@ export interface User {
   };
   status: 'available' | 'not available';
   photoUrl?: string;
+  emailVerified?: boolean;
+  permissions?: number[];
 }
 
 export interface UserResponse {
@@ -21,7 +23,13 @@ export interface UserResponse {
 export interface UserListResponse {
   success: boolean;
   data: User[];
-  currentPage: number;
-  totalPages: number;
-  totalUsers: number;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+  currentPage?: number;
+  totalPages?: number;
+  totalItems?: number;
 }
