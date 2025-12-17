@@ -15,7 +15,7 @@ export const userApi = {
   },
 
   getUserById: async (id: string): Promise<UserResponse> => {
-    const response = await axiosInstance.get<UserResponse>(`/api/user/${id}`);
+    const response = await axiosInstance.get<UserResponse>(`/api/user/${id}`); // ✅ FIXED
     return response.data;
   },
 
@@ -24,25 +24,25 @@ export const userApi = {
     email: string;
     password: string;
     status?: 'available' | 'not available';
-    role?: string;
-    photoUrl?: string;
+    role?: string | null;
+    picture?: string;
   }): Promise<UserResponse> => {
     const response = await axiosInstance.post<UserResponse>('/api/user', data);
     return response.data;
   },
 
   updateUser: async (id: string, data: Partial<User>): Promise<UserResponse> => {
-    const response = await axiosInstance.put<UserResponse>(`/api/user/${id}`, data);
+    const response = await axiosInstance.put<UserResponse>(`/api/user/${id}`, data); // ✅ FIXED
     return response.data;
   },
 
   deleteUser: async (id: string): Promise<{ success: boolean; message: string }> => {
-    const response = await axiosInstance.delete(`/api/user/${id}`);
+    const response = await axiosInstance.delete(`/api/user/${id}`); // ✅ FIXED
     return response.data;
   },
 };
 
-// Wrapper functions for backward compatibility with UserManagementPage
+// Wrapper functions
 export const fetchUsers = async (page: number = 1, limit: number = 10, search: string = '') => {
   const response = await userApi.getUsers({ page, limit, search });
   return {

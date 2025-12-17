@@ -13,6 +13,7 @@ import VerifyEmail from '../pages/auth/VerifyEmail';
 import Dashboard from '../pages/Dashboard';
 import RoleManagement from '../pages/RoleManagementPage';
 import UserManagement from '../pages/UserManagement';
+import TaskManagementPage from '../pages/TaskManagement';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -56,6 +57,10 @@ const AppRoutes: React.FC = () => {
           element={
             <ProtectedRoute children={<UserManagement />} />                
           }
+        />
+        <Route
+          path="/tasks"
+          element={<ProtectedRoute children={<TaskManagementPage />} />}
         />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
