@@ -45,7 +45,7 @@ export interface CreateTaskDTO {
   status: TaskStatus;
   priority: TaskPriority;
   assignedTo?: string;
-  createdBy: string;  
+  // createdBy: string;  
   dueDate: string;
   tags?: string[];
   subtasks?: SubTask[];
