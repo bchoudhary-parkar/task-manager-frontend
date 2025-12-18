@@ -63,11 +63,8 @@ function UserManagementPage() {
   };
 
   const handleAddUser = async (userData: any) => {
-    // const newUser = await addUserApi(userData); // Removed direct state manipulation
     await addUserApi(userData);
-    toast.success("Member added successfully");
     setIsAddModalOpen(false);
-    // After adding a user, reload users to integrate the new user into the list/pagination
     loadUsers(); 
   };
 

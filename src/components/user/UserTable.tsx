@@ -116,8 +116,8 @@ function UserTable({ users, deleteUser, openDetails, updateUser }: UserTableProp
                           : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100 focus:ring-red-300'
                       }`}
                     >
-                      <option value="available">Available</option>
-                      <option value="not available">Not Available</option>
+                      <option value="available">Active</option>
+                      <option value="not available">In Active</option>
                     </select>
                   </td>
 
