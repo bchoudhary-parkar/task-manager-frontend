@@ -54,8 +54,7 @@
  
 // export default KanbanColumn;
  
-// // src/components/taskboard/KanbanColumn.tsx
-// src/components/taskboard/KanbanColumn.tsx - STICKY HEADERS FIXED
+// src/components/taskboard/KanbanColumn.tsx - WORKING VERSION
 import React from 'react';
 import type { Task, TaskStatus } from '../../types/task.types';
 import TaskCard from './TaskCard';
@@ -85,25 +84,27 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
   onDragStart,
 }) => {
   return (
-    /* ✅ Column wrapper - full height with rounded corners */
+    /* Column container - flex column structure */
     <div 
-      className="flex flex-col bg-white rounded-lg shadow-sm border border-gray-200 h-full w-80 flex-shrink-0 overflow-hidden"
-      onDragOver={onDragOver}
-      onDrop={onDrop}
+      className="flex flex-col bg-white rounded-lg shadow-sm border border-gray-200
+    w-full sm:w-80 flex-shrink-0
+    h-[calc(100vh-260px)] sm:h-[calc(100vh-280px)]"
+      // style={{ height: 'calc(100vh - 280px)' }} // Fixed height
     >
-      {/* ✅ STICKY HEADER - Stays at top, has rounded top corners */}
-      <div 
-        className={`${color} px-4 py-3 sticky top-0 z-10 border-b border-gray-200 rounded-t-lg`}
-        style={{ position: 'sticky' }}
-      >
+      {/* FIXED HEADER - Separate div, not part of scroll */}
+      <div className={`${color} px-4 py-3 rounded-t-lg border-b border-gray-200`}>
         <h3 className="font-bold text-gray-800 text-base">{title}</h3>
         <span className="text-xs text-gray-600 font-medium">
           {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
         </span>
       </div>
 
-      {/* ✅ Scrollable task list - header stays fixed at top */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+      {/* SCROLLABLE AREA - Only this part scrolls */}
+      <div 
+        className="flex-1 overflow-y-auto p-3 space-y-3"
+        onDragOver={onDragOver}
+        onDrop={onDrop}
+      >
         {tasks.length === 0 ? (
           <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
             <p>No tasks</p>
