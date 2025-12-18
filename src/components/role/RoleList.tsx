@@ -5,7 +5,6 @@ interface RoleListProps {
   roles: { _id: string; name: string; description: string; permissions: number[] }[];
   selectedRoleIds: string[];
   onEdit: (roleId: string) => void;
-  onDelete: (roleId: string) => void;
   onSelectRole: (roleId: string) => void;
   onSelectAll: () => void;
   onInfo: (roleId: string) => void;
@@ -15,7 +14,6 @@ const RoleList: React.FC<RoleListProps> = ({
   roles, 
   selectedRoleIds,
   onEdit, 
-  onDelete,
   onSelectRole,
   onSelectAll,
   onInfo
@@ -41,7 +39,7 @@ const RoleList: React.FC<RoleListProps> = ({
             <th className="px-6 py-3">Permissions</th>
             <th className="px-6 py-3 text-center">Info</th>
             <th className="px-6 py-3 text-center">Edit</th>
-            <th className="px-6 py-3 text-center">Delete</th>
+            {/* <th className="px-6 py-3 text-center">Delete</th> */}
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">
@@ -51,7 +49,6 @@ const RoleList: React.FC<RoleListProps> = ({
               role={role}
               isSelected={selectedRoleIds.includes(role._id)}
               onEdit={() => onEdit(role._id)}
-              onDelete={() => onDelete(role._id)}
               onSelect={() => onSelectRole(role._id)}
               onInfo={() => onInfo(role._id)}
             />
