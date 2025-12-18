@@ -53,9 +53,13 @@ const TaskManagementPage = () => {
     }
  
     if (userFilter) {
-      filtered = filtered.filter((task) =>
-        task.assignedTo.toLowerCase().includes(userFilter.toLowerCase())
-      );
+      filtered = filtered.filter((task) => {
+        const assignedToName = typeof task.assignedTo === 'object' && task.assignedTo !== null
+          ? task.assignedTo.name
+          : task.assignedTo;
+        
+        return assignedToName?.toLowerCase().includes(userFilter.toLowerCase());
+      });
     }
  
     setFilteredTasks(filtered);
@@ -75,7 +79,18 @@ const TaskManagementPage = () => {
     }
   };
  
-  const uniqueUsers = Array.from(new Set(tasks.map((t) => t.assignedTo)));
+  const uniqueUsers = Array.from(
+    new Set(
+      tasks
+        .filter(t => t.assignedTo)
+        .map((t) => {
+          if (typeof t.assignedTo === 'object' && t.assignedTo !== null) {
+            return t.assignedTo.name;
+          }
+          return t.assignedTo;
+        })
+    )
+  );
  
   const handleDragStart = (task: Task) => {
     setDraggedTask(task);
@@ -90,7 +105,6 @@ const TaskManagementPage = () => {
  
     const originalStatus = draggedTask.status;
  
-    // Optimistic update
     setTasks((prev) =>
       prev.map((task) =>
         task._id === draggedTask._id ? { ...task, status } : task
@@ -104,7 +118,6 @@ const TaskManagementPage = () => {
       console.error('Error updating task:', error);
       toast.error(error.response?.data?.message || 'Failed to update task status');
  
-      // Revert on error
       setTasks((prev) =>
         prev.map((task) =>
           task._id === draggedTask._id ? { ...task, status: originalStatus } : task
@@ -113,6 +126,40 @@ const TaskManagementPage = () => {
     }
  
     setDraggedTask(null);
+  };
+  
+  const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    const task = tasks.find(t => t._id === taskId);
+    if (!task) return;
+
+    const originalStatus = task.status;
+
+    setTasks((prev) =>
+      prev.map((t) =>
+        t._id === taskId ? { ...t, status: newStatus } : t
+      )
+    );
+
+    if (selectedTask && selectedTask._id === taskId) {
+      setSelectedTask({ ...selectedTask, status: newStatus });
+    }
+
+    try {
+      await taskApi.updateTask(taskId, { status: newStatus });
+      toast.success(`Task status updated to ${newStatus.replace('_', ' ')}`);
+    } catch (error: any) {
+      console.error('Error updating task status:', error);
+      toast.error(error.response?.data?.message || 'Failed to update task status');
+
+      setTasks((prev) =>
+        prev.map((t) =>
+          t._id === taskId ? { ...t, status: originalStatus } : t
+        )
+      );
+      if (selectedTask && selectedTask._id === taskId) {
+        setSelectedTask({ ...selectedTask, status: originalStatus });
+      }
+    }
   };
  
   const handleNewTask = () => {
@@ -141,14 +188,12 @@ const TaskManagementPage = () => {
  
     const originalSubtasks = [...task.subtasks];
  
-    // Optimistic update
     setTasks((prev) =>
       prev.map((t) =>
         t._id === taskId ? { ...t, subtasks: updatedSubtasks } : t
       )
     );
  
-    // Update selected task in details modal
     if (selectedTask && selectedTask._id === taskId) {
       setSelectedTask({ ...selectedTask, subtasks: updatedSubtasks });
     }
@@ -165,7 +210,6 @@ const TaskManagementPage = () => {
       console.error('Error toggling subtask:', error);
       toast.error(error.response?.data?.message || 'Failed to update subtask');
  
-      // Revert on error
       setTasks((prev) =>
         prev.map((t) =>
           t._id === taskId ? { ...t, subtasks: originalSubtasks } : t
@@ -183,17 +227,32 @@ const TaskManagementPage = () => {
     );
  
     try {
-      // Get current user from localStorage or auth context
       const user = JSON.parse(localStorage.getItem('user') || '{}');
  
       const payload: CreateTaskDTO = {
-        ...taskData,
+        title: taskData.title,
+        description: taskData.description,
+        priority: taskData.priority,
+        assignedTo: taskData.assignedTo || undefined,
+        dueDate: taskData.dueDate,
+        tags: taskData.tags || [],
+        subtasks: taskData.subtasks || [],
         createdBy: user.name || 'Current User',
         status: editingTask?.status || 'TODO',
       };
  
       if (editingTask) {
-        const updatedTask = await taskApi.updateTask(editingTask._id, payload);
+        const updatePayload = {
+          title: payload.title,
+          description: payload.description,
+          priority: payload.priority,
+          assignedTo: payload.assignedTo,
+          dueDate: payload.dueDate,
+          tags: payload.tags,
+          subtasks: payload.subtasks,
+        };
+
+        const updatedTask = await taskApi.updateTask(editingTask._id, updatePayload);
         setTasks((prev) =>
           prev.map((t) => (t._id === editingTask._id ? updatedTask : t))
         );
@@ -205,6 +264,7 @@ const TaskManagementPage = () => {
         });
       } else {
         const newTask = await taskApi.createTask(payload);
+        
         setTasks((prev) => [...prev, newTask]);
         toast.update(loadingToastId, {
           render: 'Task created successfully',
@@ -217,7 +277,6 @@ const TaskManagementPage = () => {
       setIsCreateEditModalOpen(false);
       setEditingTask(null);
     } catch (error: any) {
-      console.error('Error saving task:', error);
       toast.update(loadingToastId, {
         render: error.response?.data?.message || 'Failed to save task. Please try again.',
         type: 'error',
@@ -280,80 +339,90 @@ const TaskManagementPage = () => {
  
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">
-            Task Management Board
-          </h1>
-          <SearchBar
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            userFilter={userFilter}
-            setUserFilter={setUserFilter}
-            uniqueUsers={uniqueUsers}
-            filteredCount={filteredTasks.length}
-            totalCount={tasks.length}
-            onClearFilters={handleClearFilters}
-            onNewTask={handleNewTask}
-          />
- 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {columns.map((column) => {
-              const columnTasks = filteredTasks.filter((t) => t.status === column.id);
- 
-              return (
-                <KanbanColumn
-                  key={column.id}
-                  id={column.id}
-                  title={column.title}
-                  color={column.color}
-                  tasks={columnTasks}
-                  onDragOver={handleDragOver}
-                  onDrop={() => handleDrop(column.id)}
-                  onTaskEdit={handleEditTask}
-                  onTaskDelete={handleDeleteTask}
-                  onTaskView={handleViewTask}
-                  onDragStart={handleDragStart}
-                />
-              );
-            })}
+      {/* CHANGED: Main container with flex column and proper height management */}
+      <div className="flex flex-col h-screen bg-gray-50">
+        {/* CHANGED: Sticky header section - stays fixed at top */}
+        <div className="sticky top-0 z-10 bg-gray-50 px-6 pt-6 pb-4 border-b border-gray-200 shadow-sm">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-3xl font-bold text-gray-800 mb-4">
+              Task Management Board
+            </h1>
+            <SearchBar
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              userFilter={userFilter}
+              setUserFilter={setUserFilter}
+              uniqueUsers={uniqueUsers}
+              filteredCount={filteredTasks.length}
+              totalCount={tasks.length}
+              onClearFilters={handleClearFilters}
+              onNewTask={handleNewTask}
+            />
           </div>
         </div>
- 
-        {/* Create/Edit Modal */}
-        {isCreateEditModalOpen && (
-          <TaskModal
-            task={editingTask}
-            onClose={() => {
-              setIsCreateEditModalOpen(false);
-              setEditingTask(null);
-            }}
-            onSave={handleSaveTask}
-          />
-        )}
- 
-        {/* Details Modal - View Only with Subtask Toggle */}
-        {isDetailsModalOpen && selectedTask && (
-          <TaskDetailsModal
-            task={selectedTask}
-            onClose={() => {
-              setIsDetailsModalOpen(false);
-              setSelectedTask(null);
-            }}
-            onToggleSubtask={handleToggleSubtask}
-          />
-        )}
- 
-        {/* Delete Confirmation Modal */}
-        <TaskDeletionModal
-          isOpen={isDeleteModalOpen}
-          onClose={handleCancelDelete}
-          onConfirm={handleConfirmDelete}
-          title="Delete Task?"
-          message={`Are you sure you want to delete "${taskToDelete?.title}"? This will also delete all subtasks associated with this task.`}
-          isDeleting={isDeleting}
-        />
+
+        {/* CHANGED: Scrollable Kanban board area - single scroll on right side */}
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          <div className="max-w-7xl mx-auto">
+            {/* CHANGED: Grid with min-width to ensure horizontal layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 min-w-max">
+              {columns.map((column) => {
+                const columnTasks = filteredTasks.filter((t) => t.status === column.id);
+
+                return (
+                  <div key={column.id} className="min-w-[280px] w-full">
+                    <KanbanColumn
+                      id={column.id}
+                      title={column.title}
+                      color={column.color}
+                      tasks={columnTasks}
+                      onDragOver={handleDragOver}
+                      onDrop={() => handleDrop(column.id)}
+                      onTaskEdit={handleEditTask}
+                      onTaskDelete={handleDeleteTask}
+                      onTaskView={handleViewTask}
+                      onDragStart={handleDragStart}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Modals - unchanged */}
+      {isCreateEditModalOpen && (
+        <TaskModal
+          task={editingTask}
+          onClose={() => {
+            setIsCreateEditModalOpen(false);
+            setEditingTask(null);
+          }}
+          onSave={handleSaveTask}
+        />
+      )}
+
+      {isDetailsModalOpen && selectedTask && (
+        <TaskDetailsModal
+          task={selectedTask}
+          onClose={() => {
+            setIsDetailsModalOpen(false);
+            setSelectedTask(null);
+          }}
+          onToggleSubtask={handleToggleSubtask}
+          onStatusChange={handleStatusChange}
+        />
+      )}
+
+      <TaskDeletionModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Task?"
+        message={`Are you sure you want to delete "${taskToDelete?.title}"? This will also delete all subtasks associated with this task.`}
+        isDeleting={isDeleting}
+      />
     </DashboardLayout>
   );
 };

@@ -29,7 +29,7 @@ export interface Task {
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
-  assignedTo: string | TaskUser; // Can be user ID (string) OR populated user object
+  assignedTo: TaskUser; // Can be user ID (string) OR populated user object
   createdBy: string | TaskUser;  // Can be user ID (string) OR populated user object
   dueDate?: string;
   tags: string[];
@@ -44,7 +44,7 @@ export interface CreateTaskDTO {
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
-  assignedTo: string;
+  assignedTo?: string;
   createdBy: string;  
   dueDate: string;
   tags?: string[];
