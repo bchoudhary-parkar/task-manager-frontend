@@ -44,6 +44,10 @@ const RoleModal: React.FC<RoleModalProps> = ({
       errors.name = 'Role name is required';
       hasError = true;
     }
+    if(name && name.trim().length < 4){
+      errors.name = 'Role name must be at least 4 characters long';
+      hasError = true;
+    }
 
     if (selectedPermissions.length === 0) {
       errors.permissions = 'Please select at least one permission';
