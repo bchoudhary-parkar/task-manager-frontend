@@ -13,7 +13,7 @@ const PriorityBadge: React.FC<PriorityBadgeProps> = ({ priority }) => {
   };
  
   return (
-    <span className={`px-2 py-1 rounded text-xs font-medium border ${colors[priority]}`}>
+    <span className={`px-3 py-1.5 rounded text-sm font-medium border ${colors[priority]}`}>
       {priority}
     </span>
   );
