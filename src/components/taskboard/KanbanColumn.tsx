@@ -55,6 +55,7 @@
 // export default KanbanColumn;
  
 // src/components/taskboard/KanbanColumn.tsx - WORKING VERSION
+// src/components/taskboard/KanbanColumn.tsx - SINGLE SCROLL VERSION
 import React from 'react';
 import type { Task, TaskStatus } from '../../types/task.types';
 import TaskCard from './TaskCard';
@@ -84,29 +85,23 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
   onDragStart,
 }) => {
   return (
-    /* Column container - flex column structure */
     <div 
-      className="flex flex-col bg-white rounded-lg shadow-sm border border-gray-200
-    w-full sm:w-80 flex-shrink-0
-    h-[calc(100vh-260px)] sm:h-[calc(100vh-280px)]"
-      // style={{ height: 'calc(100vh - 280px)' }} // Fixed height
+      className="flex flex-col bg-white shadow-sm border border-gray-200 w-75 flex-shrink-0"
+      onDragOver={onDragOver}
+      onDrop={onDrop}
     >
-      {/* FIXED HEADER - Separate div, not part of scroll */}
-      <div className={`${color} px-4 py-3 rounded-t-lg border-b border-gray-200`}>
+      {/* STICKY HEADER - Stays at top when parent scrolls */}
+      <div className={`${color} px-4 py-3 border-b border-gray-200 sticky top-0 z-10`}>
         <h3 className="font-bold text-gray-800 text-base">{title}</h3>
         <span className="text-xs text-gray-600 font-medium">
           {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
         </span>
       </div>
 
-      {/* SCROLLABLE AREA - Only this part scrolls */}
-      <div 
-        className="flex-1 overflow-y-auto p-3 space-y-3"
-        onDragOver={onDragOver}
-        onDrop={onDrop}
-      >
+      {/* TASK LIST - NO SCROLL, just flows naturally */}
+      <div className="p-3 space-y-3 mt-3">
         {tasks.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
+          <div className="flex items-center justify-center h-100 text-gray-400 text-sm">
             <p>No tasks</p>
           </div>
         ) : (
