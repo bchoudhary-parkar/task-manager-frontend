@@ -1,12 +1,11 @@
 import React from 'react';
-import { FaTrash, FaEdit, FaInfoCircle } from 'react-icons/fa';
+import { FaEdit, FaInfoCircle } from 'react-icons/fa';
 import { permissionsMap, formatPermissionName } from '../../utils/permissions';
 
 interface RoleCardProps {
   role: { _id: string; name: string; description: string; permissions: number[] };
   isSelected: boolean;
   onEdit: () => void;
-  onDelete: () => void;
   onSelect: () => void;
   onInfo: () => void;
 }
@@ -15,7 +14,6 @@ const RoleCard: React.FC<RoleCardProps> = ({
   role, 
   isSelected, 
   onEdit, 
-  onDelete, 
   onSelect,
   onInfo
 }) => {
@@ -89,7 +87,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
       </td>
 
       {/* Delete */}
-      <td className="px-6 py-4 text-center">
+      {/* <td className="px-6 py-4 text-center">
         <button 
           onClick={onDelete} 
           className="text-gray-500 hover:text-red-600 transition p-1"
@@ -97,7 +95,7 @@ const RoleCard: React.FC<RoleCardProps> = ({
         >
           <FaTrash size={16} />
         </button>
-      </td>
+      </td> */}
     </tr>
   );
 };
