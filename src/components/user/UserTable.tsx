@@ -1,18 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { type User } from '../../types/user.types';
 import { getAllRoles } from '../../api/roleApi';
 import type { Role } from '../../types/role.types';
-import { FaEdit, FaTrash, FaInfoCircle } from 'react-icons/fa';
+import { FaEdit, FaInfoCircle, FaUserCircle } from 'react-icons/fa';
 import RoleUpdateModal from './RoleUpdateModal';
 
+
+const UserAvatar = React.memo(({ name, picture }: { name: string; picture?: string }) => {
+  const fallbackUrl = useMemo(
+    () => `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
+    [name]
+  );
+
+  const [imgSrc, setImgSrc] = useState<string>(picture || fallbackUrl);
+  const [useIconFallback, setUseIconFallback] = useState<boolean>(false);
+
+  // Sync state if picture or name changes
+  useEffect(() => {
+    setImgSrc(picture || fallbackUrl);
+    setUseIconFallback(false);
+  }, [picture, fallbackUrl]);
+
+  if (useIconFallback) {
+    return <FaUserCircle className="w-10 h-10 text-gray-300" aria-label={`${name} avatar fallback icon`} />;
+  }
+
+  return (
+    <img
+      src={imgSrc}
+      alt={name}
+      className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+      onError={() => {
+        // First try the fallback URL; if that also errors, show icon
+        if (imgSrc !== fallbackUrl) {
+          setImgSrc(fallbackUrl);
+        } else {
+          setUseIconFallback(true);
+        }
+      }}
+    />
+  );
+});
+
 interface UserTableProps {
-    users: User[];
-    deleteUser: (id: string) => void;
-    openDetails: (user: User) => void;
-    updateUser: (id: string, updates: Partial<User>) => void;
+  users: User[];
+  deleteUser: (id: string) => void; // Kept in props for compatibility, but not used anymore
+  openDetails: (user: User) => void;
+  updateUser: (id: string, updates: Partial<User>) => void;
+  selectedUserIds: string[];
+  onSelectUser: (id: string) => void;
+  onSelectAll: (checked: boolean) => void;
 }
 
-function UserTable({ users, deleteUser, openDetails, updateUser }: UserTableProps) {
+function UserTable({
+  users,
+  deleteUser, // NOTE: not used after removing per-row delete column
+  openDetails,
+  updateUser,
+  selectedUserIds,
+  onSelectUser,
+  onSelectAll
+}: UserTableProps) {
   const [roles, setRoles] = useState<Role[]>([]);
   const [roleUpdateModal, setRoleUpdateModal] = useState<{
     isOpen: boolean;
@@ -56,23 +104,34 @@ function UserTable({ users, deleteUser, openDetails, updateUser }: UserTableProp
     return text.substring(0, maxLength) + '...';
   };
 
+  const isAllSelected = users.length > 0 && selectedUserIds.length === users.length;
+
   return (
     <>
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-gray-50 text-gray-700 font-semibold">
             <tr>
+              <th className="px-6 py-3 w-10">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4 cursor-pointer"
+                  checked={isAllSelected}
+                  onChange={(e) => onSelectAll(e.target.checked)}
+                />
+              </th>
               <th className="px-6 py-3">User</th>
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3">Role</th>
               <th className="px-6 py-3 text-center">Info</th>
               <th className="px-6 py-3 text-center">Edit</th>
-              <th className="px-6 py-3 text-center">Delete</th>
+              {/* Deleted the per-row Delete column */}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {users.length === 0 ? (
               <tr>
+                {/* Adjusted colSpan from 7 to 6 after removing the Delete column */}
                 <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                   No users found
                 </td>
@@ -81,19 +140,20 @@ function UserTable({ users, deleteUser, openDetails, updateUser }: UserTableProp
               users.map((user) => (
                 <tr
                   key={user._id}
-                  className="hover:bg-gray-50 transition"
+                  className={`transition ${selectedUserIds.includes(user._id) ? 'bg-blue-50/50' : 'hover:bg-gray-50'}`}
                 >
-                  {/* User Info */}
+                  <td className="px-6 py-4">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4 cursor-pointer"
+                      checked={selectedUserIds.includes(user._id)}
+                      onChange={() => onSelectUser(user._id)}
+                    />
+                  </td>
+
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <img
-                        src={user.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff`}
-                        alt={user.name}
-                        className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
-                        onError={(e) => {
-                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff`;
-                        }}
-                      />
+                      <UserAvatar name={user.name} picture={user.picture} />
                       <div>
                         <p className="font-medium text-gray-800">
                           {truncateText(user.name, 25)}
@@ -105,7 +165,6 @@ function UserTable({ users, deleteUser, openDetails, updateUser }: UserTableProp
                     </div>
                   </td>
 
-                  {/* Status */}
                   <td className="px-6 py-4">
                     <select
                       value={user.status}
@@ -121,7 +180,6 @@ function UserTable({ users, deleteUser, openDetails, updateUser }: UserTableProp
                     </select>
                   </td>
 
-                  {/* Role */}
                   <td className="px-6 py-4">
                     <button
                       onClick={() => handleRoleClick(user)}
@@ -135,38 +193,25 @@ function UserTable({ users, deleteUser, openDetails, updateUser }: UserTableProp
                     </button>
                   </td>
 
-                  {/* Info */}
                   <td className="px-6 py-4 text-center">
                     <button
                       onClick={() => openDetails(user)}
                       className="text-gray-600 hover:text-blue-800 transition p-1"
-                      title="View details"
                     >
                       <FaInfoCircle size={18} />
                     </button>
                   </td>
 
-                  {/* Edit */}
                   <td className="px-6 py-4 text-center">
                     <button
                       onClick={() => openDetails(user)}
                       className="text-blue-600 hover:text-blue-800 transition p-1"
-                      title="Edit user"
                     >
                       <FaEdit size={16} />
                     </button>
                   </td>
 
-                  {/* Delete */}
-                  <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => deleteUser(user._id)}
-                      className="text-gray-500 hover:text-red-600 transition p-1"
-                      title="Delete user"
-                    >
-                      <FaTrash size={16} />
-                    </button>
-                  </td>
+                  {/* Deleted per-row Delete action cell */}
                 </tr>
               ))
             )}
@@ -174,7 +219,6 @@ function UserTable({ users, deleteUser, openDetails, updateUser }: UserTableProp
         </table>
       </div>
 
-      {/* Role Update Modal */}
       {roleUpdateModal.isOpen && (
         <RoleUpdateModal
           userName={roleUpdateModal.userName}
