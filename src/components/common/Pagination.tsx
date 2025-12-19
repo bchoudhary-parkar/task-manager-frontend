@@ -60,7 +60,7 @@ const Pagination: React.FC<PaginationProps> = ({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 px-4 py-4 bg-white border-t border-gray-200 rounded-b-lg">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 p-2 bg-white border-t border-gray-200 rounded-b-lg">
       {/* Results Info */}
       <div className="text-sm text-gray-700">
         Showing <span className="font-semibold">{startItem}</span> to{' '}

@@ -15,7 +15,6 @@ const UserAvatar = React.memo(({ name, picture }: { name: string; picture?: stri
   const [imgSrc, setImgSrc] = useState<string>(picture || fallbackUrl);
   const [useIconFallback, setUseIconFallback] = useState<boolean>(false);
 
-  // Sync state if picture or name changes
   useEffect(() => {
     setImgSrc(picture || fallbackUrl);
     setUseIconFallback(false);
@@ -108,9 +107,9 @@ function UserTable({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      <div className="overflow-y-auto rounded-lg border border-gray-200 bg-white h-100">
         <table className="min-w-full text-left text-sm">
-          <thead className="bg-gray-50 text-gray-700 font-semibold">
+          <thead className="bg-gray-50 text-gray-700 font-semibold ">
             <tr>
               <th className="px-6 py-3 w-10">
                 <input
@@ -231,5 +230,4 @@ function UserTable({
     </>
   );
 }
-
 export default UserTable;

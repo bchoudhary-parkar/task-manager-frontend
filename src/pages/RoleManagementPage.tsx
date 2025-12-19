@@ -51,7 +51,7 @@ const RoleManagementPage: React.FC = () => {
   // Search and pagination states
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit] = useState(5);
   const [loading, setLoading] = useState(false);
 
   // Debounce search term
@@ -322,9 +322,9 @@ const RoleManagementPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="bg-gray-50 ">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center m-2">
           <h2 className="text-2xl font-bold text-gray-800">Role Management</h2>
           <button
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"

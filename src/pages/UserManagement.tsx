@@ -24,7 +24,7 @@ function UserManagementPage() {
   
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [limit] = useState(10);
+  const [limit] = useState(5);
 
   const loadUsers = useCallback(async () => {
     try {
@@ -122,7 +122,7 @@ function UserManagementPage() {
 
   return (
     <DashboardLayout>
-      <div className="p-8">
+      <div className="">
         <header className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">User Management</h1>
           <button
