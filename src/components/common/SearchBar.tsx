@@ -41,9 +41,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
         )}
       </div>
 
-      <p className="text-sm text-gray-600 mt-3">
+      {/* <p className="text-sm text-gray-600 mt-3">
         Total: {resultCount} result{resultCount !== 1 ? 's' : ''}
-      </p>
+      </p> */}
     </div>
   );
 };

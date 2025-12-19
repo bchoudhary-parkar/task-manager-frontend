@@ -21,7 +21,7 @@ const RoleList: React.FC<RoleListProps> = ({
   const allSelected = roles.length > 0 && selectedRoleIds.length === roles.length;
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white h-90">
       <table className="min-w-full text-left text-sm">
         <thead className="bg-gray-50 text-gray-700 font-semibold">
           <tr>
