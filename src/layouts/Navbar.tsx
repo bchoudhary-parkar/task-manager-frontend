@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { LayoutDashboard, LogOut, ChevronDown } from 'lucide-react';
+import { Link, useNavigate} from 'react-router-dom';
 
 interface NavbarProps {
   user?: {
@@ -10,6 +11,7 @@ interface NavbarProps {
 }
 
 const Navbar = ({ user, onLogout }: NavbarProps) => {
+  const navigate =useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -42,9 +44,11 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
             <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md">
               <LayoutDashboard className="w-5 h-5 text-white" strokeWidth={2.5} />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight">
-              Task Manager
-            </h1>
+            <div onClick={()=>navigate('/dashboard')}>
+              <h1 className="text-xl font-bold text-gray-900 tracking-tight">
+                Task Manager
+              </h1>
+            </div>
           </div>
 
           {user && (

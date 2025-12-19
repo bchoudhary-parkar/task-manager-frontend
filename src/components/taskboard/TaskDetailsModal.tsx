@@ -56,7 +56,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     if (typeof task.createdBy === 'object' && 'name' in task.createdBy) {
       return task.createdBy.name;
     }
-    return task.createdBy;
+    return String(task.createdBy);
   };
 
   // ADDED: Status dropdown options with colors
