@@ -1,21 +1,15 @@
+// src/pages/Dashboard.tsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { Users, Shield, LayoutDashboard, Activity } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
-// Define Permission Constants based on your environment mapping
-const PERMISSIONS_MAP = {
-  USER_MANAGEMENT: 1,
-  TASK_MANAGEMENT: 2,
-  ROLE_MANAGEMENT: 3,
-  ALL: 4
-};
+import PERMISSIONS_MAP from '../constants/permissions';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const permission=user?.Permissions ??[];
+  const { user, hasPermission } = useAuth();
+  
   const allCards = [
     {
       title: 'User Management',
@@ -49,14 +43,13 @@ const Dashboard: React.FC = () => {
     }
   ];
 
-  // Logic: Show card if user has the specific permission OR has the 'ALL' (Admin) permission
-  const visibleCards = allCards.filter(card => 
-    permission.includes(card.requiredPermission) || 
-    permission.includes(PERMISSIONS_MAP.ALL)
-  );
+  // Filter cards based on permissions using the helper function
+  const visibleCards = allCards.filter(card => hasPermission(card.requiredPermission));
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
+        {/* Welcome Header */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-lg p-8 text-white">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
@@ -69,6 +62,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Quick Access Cards */}
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Access</h2>
           
@@ -94,7 +88,8 @@ const Dashboard: React.FC = () => {
                         className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all"
                         fill="none"
                         stroke="currentColor"
-                        viewBox="0 0 24 24">
+                        viewBox="0 0 24 24"
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
@@ -104,8 +99,8 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-12 text-center">
-              <p className="text-gray-500">You don't have permission to access any modules.</p>
-              <p className="text-sm text-gray-400">Please contact your administrator for access.</p>
+              <p className="text-gray-500 text-lg">You don't have permission to access any modules.</p>
+              <p className="text-sm text-gray-400 mt-2">Please contact your administrator for access.</p>
             </div>
           )}
         </div>

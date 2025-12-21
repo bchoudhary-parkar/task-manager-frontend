@@ -1,7 +1,7 @@
 import React from 'react';
 import { permissionsMap, formatPermissionName } from '../../utils/permissions';
 import { FaTimes } from 'react-icons/fa';
-
+ 
 interface RoleModalProps {
   isEditMode: boolean;
   name: string;
@@ -14,7 +14,7 @@ interface RoleModalProps {
   onDescriptionChange: (value: string) => void;
   onTogglePermission: (code: number) => void;
 }
-
+ 
 const RoleModal: React.FC<RoleModalProps> = ({
   isEditMode,
   name,
@@ -31,50 +31,56 @@ const RoleModal: React.FC<RoleModalProps> = ({
     name: '',
     permissions: ''
   });
-
+ 
   const validateAndSave = () => {
     const errors = {
       name: '',
       permissions: ''
     };
-
+ 
     let hasError = false;
-
+ 
     if (!name || !name.trim()) {
       errors.name = 'Role name is required';
       hasError = true;
-    }
-    if(name && name.trim().length < 4){
+    } else if (name.trim().length < 4) {
       errors.name = 'Role name must be at least 4 characters long';
       hasError = true;
+    } else if (name.trim().length > 50) {
+      errors.name = 'Role name cannot exceed 50 characters';
+      hasError = true;
     }
-
+ 
     if (selectedPermissions.length === 0) {
       errors.permissions = 'Please select at least one permission';
       hasError = true;
     }
-
+ 
     setFieldErrors(errors);
-
+ 
     if (!hasError) {
       onSave();
     }
   };
-
+ 
   const handleNameChange = (value: string) => {
     onNameChange(value);
-    if (fieldErrors.name && value.trim()) {
+   
+    // Real-time validation
+    if (value.trim().length > 50) {
+      setFieldErrors(prev => ({ ...prev, name: 'Role name cannot exceed 50 characters' }));
+    } else if (fieldErrors.name) {
       setFieldErrors(prev => ({ ...prev, name: '' }));
     }
   };
-
+ 
   const handlePermissionToggle = (code: number) => {
     onTogglePermission(code);
     if (fieldErrors.permissions) {
       setFieldErrors(prev => ({ ...prev, permissions: '' }));
     }
   };
-
+ 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-500/30 backdrop-blur-md z-50">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-8 max-h-[90vh] overflow-y-auto">
@@ -90,7 +96,7 @@ const RoleModal: React.FC<RoleModalProps> = ({
             <FaTimes />
           </button>
         </div>
-
+ 
         {/* Role Name Input */}
         <div className="mb-4">
           <label className="block text-gray-700 font-medium mb-2">
@@ -111,7 +117,7 @@ const RoleModal: React.FC<RoleModalProps> = ({
             <p className="text-red-500 text-sm mt-1">{fieldErrors.name}</p>
           )}
         </div>
-
+ 
         {/* Description Input */}
         <div className="mb-6">
           <label className="block text-gray-700 font-medium mb-2">
@@ -125,7 +131,7 @@ const RoleModal: React.FC<RoleModalProps> = ({
             className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
         </div>
-
+ 
         {/* Permissions */}
         <div className="mb-6">
           <label className="block text-gray-700 font-medium mb-3">
@@ -148,14 +154,14 @@ const RoleModal: React.FC<RoleModalProps> = ({
             <p className="text-red-500 text-sm mt-2">{fieldErrors.permissions}</p>
           )}
         </div>
-
+ 
         {/* General Error Message */}
         {errorMessage && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded">
             <p className="text-red-600 text-sm">{errorMessage}</p>
           </div>
         )}
-
+ 
         {/* Buttons */}
         <div className="flex justify-end space-x-4">
           <button
@@ -175,5 +181,6 @@ const RoleModal: React.FC<RoleModalProps> = ({
     </div>
   );
 };
-
+ 
 export default RoleModal;
+ 

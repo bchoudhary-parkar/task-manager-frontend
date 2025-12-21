@@ -1,6 +1,7 @@
 // src/layouts/DashboardLayout.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from './Navbar';
+import Sidebar from './Sidebar';
 import { useAuth } from '../context/AuthContext';
 
 interface DashboardLayoutProps {
@@ -9,17 +10,37 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar user={user!} onLogout={logout} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:p-7">   
-        {children}
+      {/* Sidebar (slides in from left) */}
+      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+
+      {/* Main Content - Add margin when sidebar is open on desktop */}
+      <div className={`flex flex-col min-h-screen transition-all duration-300 ${
+        isSidebarOpen ? 'lg:ml-64' : ''
+      }`}>
+        {/* Navbar */}
+        <Navbar user={user!} onLogout={logout} onToggleSidebar={toggleSidebar} />
+
+        {/* Page Content */}
+        <main className="flex-1 p-6">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
 };
 
 export default DashboardLayout;
-
-// max-w-7xl mx-auto px-4 sm:px-6 lg:p-7
