@@ -54,8 +54,7 @@
  
 // export default KanbanColumn;
  
-// src/components/taskboard/KanbanColumn.tsx - WORKING VERSION
-// src/components/taskboard/KanbanColumn.tsx - SINGLE SCROLL VERSION
+
 import React from 'react';
 import type { Task, TaskStatus } from '../../types/task.types';
 import TaskCard from './TaskCard';
@@ -98,7 +97,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
         </span>
       </div>
 
-      {/* TASK LIST - NO SCROLL, just flows naturally */}
+      {/* TASK LIST - NO SCROLL, just flows naturally when scroll*/}
       <div className="p-3 space-y-3 mt-3">
         {tasks.length === 0 ? (
           <div className="flex items-center justify-center h-100 text-gray-400 text-sm">

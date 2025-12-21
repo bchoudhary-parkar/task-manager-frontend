@@ -1,4 +1,4 @@
-// src/components/taskboard/TaskDetailsModal.tsx
+
 import React, { useState } from 'react';
 import { X, Calendar, User, Tag, CheckSquare, AlertCircle, Clock } from 'lucide-react';
 import type { Task, TaskStatus } from '../../types/task.types';
@@ -8,23 +8,23 @@ interface TaskDetailsModalProps {
   task: Task;
   onClose: () => void;
   onToggleSubtask: (taskId: string, subtaskId: string) => void;
-  onStatusChange: (taskId: string, newStatus: TaskStatus) => void; // ADDED: New prop for status change
+  onStatusChange: (taskId: string, newStatus: TaskStatus) => void; 
 }
 
 const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   task,
   onClose,
   onToggleSubtask,
-  onStatusChange, // ADDED: Accept status change handler
+  onStatusChange, 
 }) => {
-  // ADDED: Local state for status dropdown
+
   const [selectedStatus, setSelectedStatus] = useState<TaskStatus>(task.status);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
 
   const completedSubtasks = task.subtasks?.filter((st) => st.completed).length || 0;
   const totalSubtasks = task.subtasks?.length || 0;
 
-  // ADDED: Helper to get assignedTo name
+ 
   const getAssignedToName = () => {
     if (!task.assignedTo) return 'Unassigned';
     
@@ -35,9 +35,9 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     return task.assignedTo;
   };
 
-  // ADDED: Handle status change
+  // Handle status change
   const handleStatusChange = async (newStatus: TaskStatus) => {
-    if (newStatus === task.status) return; // No change needed
+    if (newStatus === task.status) return; 
     
     setIsChangingStatus(true);
     setSelectedStatus(newStatus);
@@ -45,7 +45,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     try {
       await onStatusChange(task._id, newStatus);
     } catch (error) {
-      // Revert on error
+
       setSelectedStatus(task.status);
     } finally {
       setIsChangingStatus(false);
@@ -59,7 +59,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
     return String(task.createdBy);
   };
 
-  // ADDED: Status dropdown options with colors
+  //Status dropdown options with colors
   const statusOptions: { value: TaskStatus; label: string; color: string }[] = [
     { value: 'TODO', label: 'To Do', color: 'bg-gray-100 text-gray-800' },
     { value: 'IN_PROGRESS', label: 'In Progress', color: 'bg-blue-100 text-blue-800' },
@@ -79,7 +79,7 @@ const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
               <div className="flex items-center gap-3 mb-2">
                 <h2 className="text-2xl font-bold text-gray-900">{task.title}</h2>
               </div>
-              {/* ADDED: Status Dropdown */}
+              {/* Status Dropdown */}
               <div className="flex items-center gap-2">
                 <PriorityBadge priority={task.priority} />
                 {/* <span className="text-sm font-medium text-gray-600">Status:</span> */}
