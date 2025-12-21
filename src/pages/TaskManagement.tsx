@@ -336,9 +336,9 @@ const TaskManagementPage = () => {
   return (
     <DashboardLayout>
       {/* Main container - Full height, single scroll */}
-      <div className="fixed inset-0 top-16 flex flex-col bg-gray-50"> 
+      <div className=" flex flex-col h-138 bg-gray-50"> 
         <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
-          <h1 className="text-xl font-bold text-gray-800 mb-3">Task Board</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-3">Task Board</h1>
           <SearchBar
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
@@ -353,7 +353,7 @@ const TaskManagementPage = () => {
         </div>
 
         {/* Board Area - Single unified scroll */}
-        <div className="flex-1 overflow-y-auto p-4 pt-0">
+        <div className="flex-1 overflow-y-auto overflow-x-auto p-4 pt-0">
           <div className="flex gap-3">
             {columns.map((column) => {
               const columnTasks = filteredTasks.filter((t) => t.status === column.id);
