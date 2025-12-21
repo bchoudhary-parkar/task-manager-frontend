@@ -1,6 +1,7 @@
+// src/layouts/Navbar.tsx
 import { useState, useRef, useEffect } from 'react';
 import { LayoutDashboard, LogOut, ChevronDown } from 'lucide-react';
-import { Link, useNavigate} from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface NavbarProps {
   user?: {
@@ -8,10 +9,11 @@ interface NavbarProps {
     email: string;
   };
   onLogout?: () => void;
+  onToggleSidebar?: () => void; // NEW: Function to toggle sidebar
 }
 
-const Navbar = ({ user, onLogout }: NavbarProps) => {
-  const navigate =useNavigate();
+const Navbar = ({ user, onLogout, onToggleSidebar }: NavbarProps) => {
+  const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -38,19 +40,31 @@ const Navbar = ({ user, onLogout }: NavbarProps) => {
 
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
+          {/* Left Section - Logo/Brand */}
           <div className="flex items-center space-x-3">
-            <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md">
+            {/* Sidebar Toggle Button */}
+            <button
+              onClick={onToggleSidebar}
+              className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-200 cursor-pointer"
+              title="Toggle Sidebar"
+            >
               <LayoutDashboard className="w-5 h-5 text-white" strokeWidth={2.5} />
-            </div>
-            <div onClick={()=>navigate('/dashboard')}>
+            </button>
+            
+            {/* Brand Name */}
+            <button 
+              className='cursor-pointer' 
+              onClick={() => navigate('/dashboard')}
+            >
               <h1 className="text-xl font-bold text-gray-900 tracking-tight">
                 Task Manager
               </h1>
-            </div>
+            </button>
           </div>
 
+          {/* Right Section - User Profile */}
           {user && (
             <div className="relative" ref={dropdownRef}>
               <button
