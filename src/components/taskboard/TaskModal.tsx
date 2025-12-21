@@ -1,4 +1,4 @@
-// src/components/task/TaskModal.tsx
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { X, Plus, Trash2, AlertCircle, Edit2, Check } from 'lucide-react';
@@ -24,8 +24,8 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSave }) => {
     title: '',
     description: '',
     priority: '' as '' | TaskPriority,
-    assignedTo: '',          // will store TaskUser._id
-    dueDate: '',             // YYYY-MM-DD
+    assignedTo: '',          
+    dueDate: '',             
     tags: '',
   });
 
@@ -122,7 +122,7 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSave }) => {
   return undefined;
 };
 
-// In validateForm function, REMOVE assignedTo validation:
+
 
 const validateForm = (): boolean => {
   const newErrors: ValidationErrors = {};
@@ -133,7 +133,7 @@ const validateForm = (): boolean => {
   const descriptionError = validateField('description', formData.description);
   if (descriptionError) newErrors.description = descriptionError;
 
-  // ❌ REMOVE THESE LINES
+ 
   // const assignedToError = validateField('assignedTo', formData.assignedTo);
   // if (assignedToError) newErrors.assignedTo = assignedToError;
 
@@ -147,7 +147,7 @@ const validateForm = (): boolean => {
   setTouched({
     title: true,
     description: true,
-    // assignedTo: true, // ❌ REMOVE THIS
+    // assignedTo: true, 
     priority: true,
     dueDate: true,
   });
@@ -240,7 +240,7 @@ const validateForm = (): boolean => {
     assignedTo: formData.assignedTo,
     dueDate: formData.dueDate,
     tags: processedTags,
-    subtasks: subtasks, // This should be the state array
+    subtasks: subtasks, 
   };
 
   onSave(taskData);

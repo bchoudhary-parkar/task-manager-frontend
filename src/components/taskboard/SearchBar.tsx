@@ -1,4 +1,4 @@
-// src/components/task/SearchBar.tsx
+
 import React, { useEffect, useState } from 'react';
 import { Search, Filter } from 'lucide-react';
 import { taskApi } from '../../api/taskApi';
@@ -26,7 +26,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onClearFilters,
   onNewTask,
 }) => {
-  const [allUsers, setAllUsers] = useState<TaskUser[]>([]); // Changed from User to TaskUser
+  const [allUsers, setAllUsers] = useState<TaskUser[]>([]); 
  
   useEffect(() => {
     fetchUsers();

@@ -1,4 +1,4 @@
-// src/pages/TaskManagementPage.tsx - JIRA STYLE FINAL
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { taskApi } from '../api/taskApi';
@@ -336,9 +336,7 @@ const TaskManagementPage = () => {
   return (
     <DashboardLayout>
       {/* Main container - Full height, single scroll */}
-      <div className="fixed inset-0 top-16 flex flex-col bg-gray-50">
-        
-        {/* Fixed Header - Compact like Jira */}
+      <div className="fixed inset-0 top-16 flex flex-col bg-gray-50"> 
         <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
           <h1 className="text-xl font-bold text-gray-800 mb-3">Task Board</h1>
           <SearchBar
