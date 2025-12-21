@@ -98,7 +98,7 @@ function AddUserModal({ onClose, addUser }: AddUserModalProps) {
                     <div>
                         <label className="block text-sm font-medium mb-1">Role</label>
                         <select name="role" value={formData.role} onChange={handleChange} className="border p-2 w-full rounded border-gray-300">
-                            <option value="">No Role</option>
+                            <option value="">Member</option>
                             {roles.map((role) => <option key={role._id} value={role._id}>{role.name}</option>)}
                         </select>
                     </div>

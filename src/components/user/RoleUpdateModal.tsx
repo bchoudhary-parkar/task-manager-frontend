@@ -23,8 +23,8 @@ const RoleUpdateModal: React.FC<RoleUpdateModalProps> = ({
     onConfirm(selectedRole === '' ? null : selectedRole);
   };
 
-  const currentRoleName = roles.find(r => r._id === currentRole)?.name || 'No Role';
-  const newRoleName = selectedRole === '' ? 'No Role' : roles.find(r => r._id === selectedRole)?.name || 'No Role';
+  const currentRoleName = roles.find(r => r._id === currentRole)?.name || 'Member';
+  const newRoleName = selectedRole === '' ? 'Member' : roles.find(r => r._id === selectedRole)?.name || 'Member';
   const hasChanged = selectedRole !== (currentRole || '');
 
   return (
@@ -68,7 +68,7 @@ const RoleUpdateModal: React.FC<RoleUpdateModalProps> = ({
               onChange={(e) => setSelectedRole(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
             >
-              <option value="">No Role</option>
+              <option value="">Member</option>
               {roles.map((role) => (
                 <option key={role._id} value={role._id}>
                   {role.name}

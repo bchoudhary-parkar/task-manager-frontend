@@ -18,10 +18,8 @@ function UserManagementPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const { user: currentUser } = useAuth();
   
-  // Changed from single user to array to support bulk delete
   const [usersToDelete, setUsersToDelete] = useState<User[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
-  
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(5);
@@ -46,7 +44,6 @@ function UserManagementPage() {
     return users.filter(user => user._id !== currentUser?._id);
   }, [users, currentUser]);
 
-  // Selection handlers
   const handleSelectUser = (id: string) => {
     setSelectedUserIds(prev => 
       prev.includes(id) ? prev.filter(uid => uid !== id) : [...prev, id]
@@ -79,7 +76,6 @@ function UserManagementPage() {
     const loadingToastId = toast.loading(`Deleting ${usersToDelete.length} user(s)...`);
 
     try {
-      // Execute all deletions (single or bulk)
       await Promise.all(usersToDelete.map(u => deleteUserApi(u._id)));
       
       toast.update(loadingToastId, {
@@ -169,19 +165,19 @@ function UserManagementPage() {
           onSelectAll={handleSelectAll}
         />
         
-        <div className="flex justify-between items-center mt-6">
+        <div className="flex gap-2 items-center justify-center mt-6">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded disabled:opacity-50 transition"
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded disabled:opacity-50 transition text-sm"
           >
             Previous
           </button>
-          <span className="text-gray-700 font-medium">Page {currentPage} of {totalPages}</span>
+          <span className="text-gray-700 font-medium text-sm">Page {currentPage} of {totalPages}</span>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded disabled:opacity-50 transition"
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded disabled:opacity-50 transition text-sm"
           >
             Next
           </button>

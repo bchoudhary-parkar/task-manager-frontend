@@ -30,7 +30,6 @@ const UserAvatar = React.memo(({ name, picture }: { name: string; picture?: stri
       alt={name}
       className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
       onError={() => {
-        // First try the fallback URL; if that also errors, show icon
         if (imgSrc !== fallbackUrl) {
           setImgSrc(fallbackUrl);
         } else {
@@ -43,7 +42,7 @@ const UserAvatar = React.memo(({ name, picture }: { name: string; picture?: stri
 
 interface UserTableProps {
   users: User[];
-  deleteUser: (id: string) => void; // Kept in props for compatibility, but not used anymore
+  deleteUser: (id: string) => void;
   openDetails: (user: User) => void;
   updateUser: (id: string, updates: Partial<User>) => void;
   selectedUserIds: string[];
@@ -53,7 +52,7 @@ interface UserTableProps {
 
 function UserTable({
   users,
-  deleteUser, // NOTE: not used after removing per-row delete column
+  deleteUser,
   openDetails,
   updateUser,
   selectedUserIds,
@@ -124,13 +123,11 @@ function UserTable({
               <th className="px-6 py-3">Role</th>
               <th className="px-6 py-3 text-center">Info</th>
               <th className="px-6 py-3 text-center">Edit</th>
-              {/* Deleted the per-row Delete column */}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {users.length === 0 ? (
               <tr>
-                {/* Adjusted colSpan from 7 to 6 after removing the Delete column */}
                 <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                   No users found
                 </td>
@@ -188,7 +185,7 @@ function UserTable({
                           : 'bg-gray-50 text-gray-500 border-gray-200'
                       }`}
                     >
-                      {user.role ? truncateText(user.role.name, 20) : 'No Role'}
+                      {user.role ? truncateText(user.role.name, 20) : 'Member'}
                     </button>
                   </td>
 
@@ -210,7 +207,6 @@ function UserTable({
                     </button>
                   </td>
 
-                  {/* Deleted per-row Delete action cell */}
                 </tr>
               ))
             )}

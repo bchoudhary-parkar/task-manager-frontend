@@ -131,7 +131,7 @@ function UserDetailsModal({ user, onClose, updateUser }: UserDetailsModalProps) 
                   onChange={handleChange}
                   className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-300 focus:border-purple-300"
                 >
-                  <option value="">No Role</option>
+                  <option value="">Member</option>
                   {roles.map((role) => (
                     <option key={role._id} value={role._id}>
                       {role.name}
@@ -153,7 +153,7 @@ function UserDetailsModal({ user, onClose, updateUser }: UserDetailsModalProps) 
                   </span>
                 ) : (
                   <span className="px-4 py-1.5 rounded-full text-sm font-semibold bg-gray-100 text-gray-500 border-2 border-gray-200">
-                    No Role
+                    Member
                   </span>
                 )}
               </div>
