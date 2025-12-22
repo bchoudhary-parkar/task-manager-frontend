@@ -14,7 +14,7 @@ const Login: React.FC = () => {
   const [errors, setErrors] = useState<ValidationErrors & { general?: string }>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const { setUser, setToken } = useAuth();
+  const { setUser, setToken, refreshUser } = useAuth(); 
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -36,7 +36,6 @@ const Login: React.FC = () => {
         password
       });
 
-      // NEW: Check if email verification is required
       if (response.requiresVerification) {
         navigate('/verify-email', { 
           state: { email: email.trim().toLowerCase() } 
@@ -47,7 +46,11 @@ const Login: React.FC = () => {
       if (response.success && response.token && response.user) {
         localStorage.setItem('token', response.token);
         setToken(response.token);
+        
+        await refreshUser();
+        
         setUser(response.user);
+        
         navigate('/dashboard');
       } else {
         setErrors({ general: response.message || 'Login failed' });
@@ -57,7 +60,7 @@ const Login: React.FC = () => {
       const requiresVerification = error.response?.data?.requiresVerification;
       const errorEmail = error.response?.data?.email;
 
-      // NEW: Handle verification required error
+      // Handle verification required error
       if (requiresVerification && errorEmail) {
         setErrors({ 
           general: (
