@@ -1,5 +1,5 @@
 // src/layouts/Sidebar.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -24,7 +24,7 @@ interface MenuItem {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { hasPermission } = useAuth();
+  const { hasPermission, permissions, user } = useAuth();
 
   const menuItems: MenuItem[] = [
     {
@@ -52,20 +52,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     }
   ];
 
-  // Filter menu items based on permissions
-  const visibleMenuItems = menuItems.filter(item => 
-    !item.requiredPermission || hasPermission(item.requiredPermission)
-  );
+  const visibleMenuItems = useMemo(() => {
+    const items = menuItems.filter(item => 
+      !item.requiredPermission || hasPermission(item.requiredPermission)
+    );
+    return items;
+  }, [permissions, user]); 
 
   return (
     <>
-      {/* Backdrop Overlay - Only visible on mobile/tablet */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity lg:hidden"
-          onClick={onClose}
-        />
-      )}
+      <div
+        className={`... ${
+        isOpen ? 'bg-opacity-50 pointer-events-auto' : 'bg-opacity-0 pointer-events-none'
+      }`}
+  onClick={onClose}
+/>
 
       {/* Sidebar */}
       <div
@@ -89,29 +90,36 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Menu Items */}
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto h-[calc(100vh-8rem)]">
-          {visibleMenuItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              onClick={onClose}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                  isActive
-                    ? 'bg-blue-50 text-blue-600 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`
-              }
-            >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
-              <span className="font-medium">{item.title}</span>
-            </NavLink>
-          ))}
+          {visibleMenuItems.length > 0 ? (
+            visibleMenuItems.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-600 font-semibold'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`
+                }
+              >
+                <item.icon className="w-5 h-5 flex-shrink-0" />
+                <span className="font-medium">{item.title}</span>
+              </NavLink>
+            ))
+          ) : (
+            <div className="px-4 py-3 text-sm text-gray-500 text-center">
+              <p className="mb-2">No pages available</p>
+              <p className="text-xs">Contact administrator for access</p>
+            </div>
+          )}
         </nav>
 
         {/* Footer */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
           <p className="text-xs text-gray-500 text-center">
-            © 2024 Task Manager
+            © 2025 Task Manager
           </p>
         </div>
       </div>

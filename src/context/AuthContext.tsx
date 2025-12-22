@@ -23,28 +23,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // FIXED: Get permissions from user - handle both "Permissions" (capital P) and "permissions"
   const permissions = user?.Permissions || user?.permissions || [];
 
-  // Function to refresh user data
   const refreshUser = async () => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       try {
+        setIsLoading(true); 
         const response = await authApi.getCurrentUser();
         if (response.success && response.user) {
           setUser(response.user);
-          console.log('User refreshed:', response.user);
         }
       } catch (error) {
         console.error('Failed to refresh user:', error);
+      } finally {
+        setIsLoading(false); 
       }
     }
   };
 
-  // Helper function to check if user has a specific permission
   const hasPermission = (permission: number): boolean => {
-    return permissions.includes(permission) || permissions.includes(4); // 4 is ALL permission
+    return permissions.includes(permission) || permissions.includes(4); 
   };
 
   useEffect(() => {
@@ -56,7 +55,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (response.success && response.user) {
             setUser(response.user);
             setToken(storedToken);
-            console.log('Auth check - User loaded:', response.user);
           } else {
             localStorage.removeItem('token');
             setToken(null);
@@ -71,6 +69,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+  }, [permissions, user, token]);
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token') {
+        if (e.newValue) {
+          setToken(e.newValue);
+          refreshUser();
+        } else {
+          logout();
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const logout = () => {
