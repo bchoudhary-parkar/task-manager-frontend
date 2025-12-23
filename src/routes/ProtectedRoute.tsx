@@ -43,6 +43,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       </div>
     );
   }
+  //a
 
   // Check if user has required permission (if specified)
   if (requiredPermission && !hasPermission(requiredPermission)) {
