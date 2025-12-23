@@ -1,5 +1,5 @@
 // src/pages/Dashboard.tsx
-import React from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../layouts/DashboardLayout';
 import { Users, Shield, LayoutDashboard, Activity } from 'lucide-react';
@@ -8,7 +8,7 @@ import PERMISSIONS_MAP from '../constants/permissions';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, hasPermission } = useAuth();
+  const { user, hasPermission, permissions, isLoading } = useAuth();
   
   const allCards = [
     {
@@ -43,8 +43,31 @@ const Dashboard: React.FC = () => {
     }
   ];
 
-  // Filter cards based on permissions using the helper function
-  const visibleCards = allCards.filter(card => hasPermission(card.requiredPermission));
+  // ✅ Use useMemo to recalculate when permissions change
+  const visibleCards = useMemo(() => {
+    const cards = allCards.filter(card => hasPermission(card.requiredPermission));
+    return cards;
+  }, [permissions, user]); // Recalculate when permissions or user changes
+
+  // Debug effect - only logs when permissions actually change
+  useEffect(() => {
+    if (user && permissions.length > 0) {
+    }
+  }, [permissions.length]); // Only log when permission count changes
+
+  // Show loading state while data is being fetched
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -65,7 +88,6 @@ const Dashboard: React.FC = () => {
         {/* Quick Access Cards */}
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Access</h2>
-          
           {visibleCards.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {visibleCards.map((card, index) => (
@@ -99,8 +121,13 @@ const Dashboard: React.FC = () => {
             </div>
           ) : (
             <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl p-12 text-center">
-              <p className="text-gray-500 text-lg">You don't have permission to access any modules.</p>
-              <p className="text-sm text-gray-400 mt-2">Please contact your administrator for access.</p>
+              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <LayoutDashboard className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500 text-lg font-medium mb-2">No Modules Available</p>
+              <p className="text-sm text-gray-400">
+                You don't have permission to access any modules. Please contact your administrator for access.
+              </p>
             </div>
           )}
         </div>

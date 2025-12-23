@@ -9,7 +9,7 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -19,6 +19,29 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const closeSidebar = () => {
     setIsSidebarOpen(false);
   };
+
+  // CRITICAL FIX: Wait for user data to load before rendering
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if user is not loaded
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">User data not available</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,7 +53,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         isSidebarOpen ? 'lg:ml-64' : ''
       }`}>
         {/* Navbar */}
-        <Navbar user={user!} onLogout={logout} onToggleSidebar={toggleSidebar} />
+        <Navbar user={user} onLogout={logout} onToggleSidebar={toggleSidebar} />
 
         {/* Page Content */}
         <main className="flex-1 p-6">

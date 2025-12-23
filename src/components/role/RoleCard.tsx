@@ -1,3 +1,4 @@
+// src/components/role/RoleCard.tsx
 import React from 'react';
 import { FaEdit, FaInfoCircle } from 'react-icons/fa';
 import { permissionsMap, formatPermissionName } from '../../utils/permissions';
