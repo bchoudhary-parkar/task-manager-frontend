@@ -42,9 +42,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Helper function to check if user has a specific permission
   const hasPermission = (permission: number): boolean => {
-    return permissions.includes(permission) || permissions.includes(4); // 4 is ALL permission
+    return permissions.includes(permission) || permissions.includes(4);
   };
 
   useEffect(() => {
