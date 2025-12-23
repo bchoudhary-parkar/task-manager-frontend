@@ -1,32 +1,28 @@
-import React, { useEffect, useState } from 'react';
+// src/pages/RoleManagementPage.tsx
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { toast } from 'react-toastify';
 import { getRoles, createRole, updateRole, deleteRole } from '../api/roleApi';
 import RoleModal from '../components/role/RoleModal';
 import RoleInfoModal from '../components/role/RoleInfoModal';
 import RoleList from '../components/role/RoleList';
-import SearchFilterBar from '../components/common/SearchBar';
-import Pagination from '../components/common/Pagination';
+import SearchWithActions from '../components/common/SearchWithActions';
+import SimplePagination from '../components/common/SimplePagination';
 import { permissionsMap } from './../utils/permissions';
 import DeleteConfirmationModal from '../components/common/DeleteConfirmationModal';
-import { FaTrash } from 'react-icons/fa';
 import { useDebounce } from '../hooks/useDebounce';
+import { Trash2 } from 'lucide-react';
 import DashboardLayout from '../layouts/DashboardLayout';
 
 const RoleManagementPage: React.FC = () => {
   // Role data
   const [roles, setRoles] = useState<any[]>([]);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    itemsPerPage: 10,
-    hasNextPage: false,
-    hasPrevPage: false
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit] = useState(5);
+  const [loading, setLoading] = useState(false);
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
 
   // Form states
@@ -38,8 +34,7 @@ const RoleManagementPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   // Delete states
-  const [roleToDelete, setRoleToDelete] = useState<string[]>([]);
-  const [roleNamesToDelete, setRoleNamesToDelete] = useState<string[]>([]);
+  const [rolesToDelete, setRolesToDelete] = useState<any[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Info modal state
@@ -48,33 +43,18 @@ const RoleManagementPage: React.FC = () => {
   // Checkbox selection
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
 
-  // Search and pagination states
+  // Search state
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [limit] = useState(5);
-  const [loading, setLoading] = useState(false);
 
-  // Debounce search term
-  const debouncedSearch = useDebounce(searchTerm, 500);
+  // Debounce search term to reduce API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  // Fetch roles when debounced search or page changes
-  useEffect(() => {
-    fetchRoles();
-  }, [debouncedSearch, currentPage]);
-
-  // Reset to page 1 when search changes
-  useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-  }, [searchTerm]);
-
-  // API Calls
-  const fetchRoles = async () => {
+  // Fetch roles - using useCallback like UserManagement
+  const fetchRoles = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await getRoles({
-        search: debouncedSearch,
+        search: debouncedSearchTerm,
         page: currentPage,
         limit: limit,
         sortBy: 'createdAt',
@@ -83,7 +63,8 @@ const RoleManagementPage: React.FC = () => {
 
       if (data) {
         setRoles(data.data || []);
-        setPagination(data.pagination);
+        setCurrentPage(data.pagination.currentPage);
+        setTotalPages(data.pagination.totalPages);
       } else {
         console.error(error);
         toast.error(error || 'Failed to fetch roles');
@@ -95,21 +76,26 @@ const RoleManagementPage: React.FC = () => {
       setRoles([]);
     } finally {
       setLoading(false);
-      setSelectedRoleIds([]);
     }
-  };
+  }, [currentPage, limit, debouncedSearchTerm]);
+
+  // Fetch when dependencies change
+  useEffect(() => {
+    fetchRoles();
+    setSelectedRoleIds([]); // Clear selection when page or search changes
+  }, [fetchRoles]);
 
   // Form Handlers
-  const resetFormState = () => {
+  const resetFormState = useCallback(() => {
     setName('');
     setDescription('');
     setSelectedPermissions([]);
     setIsEditMode(false);
     setEditRoleId(null);
     setErrorMessage('');
-  };
+  }, []);
 
-  const handleCreateOrUpdateRole = async () => {
+  const handleCreateOrUpdateRole = useCallback(async () => {
     if (!name || selectedPermissions.length === 0) {
       setErrorMessage('Please enter role name and select permissions');
       toast.error('Please enter role name and select permissions');
@@ -157,9 +143,9 @@ const RoleManagementPage: React.FC = () => {
         autoClose: 3000,
       });
     }
-  };
+  }, [name, selectedPermissions, isEditMode, editRoleId, description, resetFormState, fetchRoles]);
 
-  const togglePermission = (code: number) => {
+  const togglePermission = useCallback((code: number) => {
     setSelectedPermissions(prev => {
       let updated = [...prev];
 
@@ -185,10 +171,10 @@ const RoleManagementPage: React.FC = () => {
 
       return updated;
     });
-  };
+  }, []);
 
   // Role Actions
-  const handleEditClick = (roleId: string) => {
+  const handleEditClick = useCallback((roleId: string) => {
     const role = roles.find(r => r._id === roleId);
     if (role) {
       setName(role.name);
@@ -198,116 +184,104 @@ const RoleManagementPage: React.FC = () => {
       setEditRoleId(role._id);
       setShowModal(true);
     }
-  };
+  }, [roles]);
 
-  const handleInfoClick = (roleId: string) => {
+  const handleInfoClick = useCallback((roleId: string) => {
     const role = roles.find(r => r._id === roleId);
     if (role) {
       setSelectedRoleForInfo(role);
       setShowInfoModal(true);
     }
-  };
+  }, [roles]);
 
-  const handleDeleteClick = (roleIds: string[]) => {
-    const rolesToDelete = roles.filter(r => roleIds.includes(r._id));
-    if (rolesToDelete.length > 0) {
-      setRoleToDelete(roleIds);
-      setRoleNamesToDelete(rolesToDelete.map(r => r.name));
-      setShowDeleteModal(true);
+  const handleDeleteRole = useCallback((roleId: string) => {
+    const role = roles.find(r => r._id === roleId);
+    if (role) {
+      setRolesToDelete([role]);
     }
-  };
+  }, [roles]);
 
-  const confirmDelete = async () => {
-    if (roleToDelete.length === 0) return;
+  const handleBulkDeleteTrigger = useCallback(() => {
+    const selectedRoles = roles.filter(r => selectedRoleIds.includes(r._id));
+    setRolesToDelete(selectedRoles);
+  }, [roles, selectedRoleIds]);
+
+  const confirmDelete = useCallback(async () => {
+    if (rolesToDelete.length === 0) return;
 
     setIsDeleting(true);
+    const loadingToastId = toast.loading(`Deleting ${rolesToDelete.length} role(s)...`);
 
     try {
-      const deletePromises = roleToDelete.map(id => deleteRole(id));
-      const results = await Promise.all(deletePromises);
+      await Promise.all(rolesToDelete.map(r => deleteRole(r._id)));
       
-      const errors = results.filter(r => r.error);
-      
-      if (errors.length > 0) {
-        toast.error(`Failed to delete ${errors.length} role(s)`);
-      } else {
-        toast.success(
-          roleToDelete.length === 1 
-            ? 'Role deleted successfully' 
-            : `${roleToDelete.length} roles deleted successfully`
-        );
-      }
-      
-      // Calculate if we need to go to previous page
-      const remainingRolesOnCurrentPage = roles.length - roleToDelete.length;
-      const shouldGoToPreviousPage = (remainingRolesOnCurrentPage === 0 && currentPage > 1);
-      
-      // Update page before fetching
-      if (shouldGoToPreviousPage) {
-        setCurrentPage(currentPage - 1);
-      } else {
-        // Just refresh current page
-        fetchRoles();
-      }
-      
-      setShowDeleteModal(false);
-      setRoleToDelete([]);
-      setRoleNamesToDelete([]);
+      toast.update(loadingToastId, {
+        render: `${rolesToDelete.length > 1 ? 'Roles' : 'Role'} deleted successfully`,
+        type: 'success',
+        isLoading: false,
+        autoClose: 3000,
+      });
+
+      setRolesToDelete([]);
       setSelectedRoleIds([]);
+      fetchRoles();
     } catch (error: any) {
-      console.error('Error deleting roles:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete roles');
+      toast.update(loadingToastId, {
+        render: error.response?.data?.message || 'Failed to delete role(s)',
+        type: 'error',
+        isLoading: false,
+        autoClose: 3000,
+      });
     } finally {
       setIsDeleting(false);
     }
-  };
+  }, [rolesToDelete, fetchRoles]);
 
   // Selection Handlers
-  const handleSelectRole = (roleId: string) => {
+  const handleSelectRole = useCallback((roleId: string) => {
     setSelectedRoleIds(prev =>
       prev.includes(roleId) ? prev.filter(id => id !== roleId) : [...prev, roleId]
     );
-  };
+  }, []);
 
-  const handleSelectAll = () => {
-    const allSelected = roles.length > 0 && selectedRoleIds.length === roles.length;
-    
-    if (allSelected) {
-      setSelectedRoleIds([]);
-    } else {
+  const handleSelectAll = useCallback((checked: boolean) => {
+    if (checked) {
       setSelectedRoleIds(roles.map(role => role._id));
+    } else {
+      setSelectedRoleIds([]);
     }
-  };
-
-  const handleBulkDelete = () => {
-    if (selectedRoleIds.length > 0) {
-      handleDeleteClick(selectedRoleIds);
-    }
-  };
+  }, [roles]);
 
   // Modal Handlers
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     resetFormState();
     setShowModal(false);
-  };
+  }, [resetFormState]);
 
-  const handleAddRoleClick = () => {
+  const handleAddRoleClick = useCallback(() => {
     resetFormState();
     setShowModal(true);
-  };
+  }, [resetFormState]);
 
-  const handleSearchClear = () => {
-    setSearchTerm('');
-    setCurrentPage(1);
-    toast.success('Filters cleared');
-  };
+  const handleInfoModalClose = useCallback(() => {
+    setShowInfoModal(false);
+    setSelectedRoleForInfo(null);
+  }, []);
 
   // Pagination Handlers
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  const handlePageChange = useCallback((page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  }, [totalPages]);
 
-  if (loading) {
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page on search
+  }, []);
+
+  // Loading State
+  if (loading && roles.length === 0) {
     return (
       <DashboardLayout>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -322,38 +296,61 @@ const RoleManagementPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="bg-gray-50 ">
+      <div className="">
         {/* Header */}
-        <div className="flex justify-between items-center m-2">
-          <h2 className="text-2xl font-bold text-gray-800">Role Management</h2>
+        <header className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Role Management</h1>
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
             onClick={handleAddRoleClick}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition shadow-md"
           >
-            + Add Role
+            Add Role
           </button>
-        </div>
+        </header>
 
-        {/* Search Bar */}
-        <SearchFilterBar
+        {/* Search with Bulk Actions */}
+        <SearchWithActions
           searchTerm={searchTerm}
-          resultCount={pagination.totalItems}
-          onSearchChange={setSearchTerm}
-          onClear={handleSearchClear}
+          placeholder="Search roles by name..."
+          onSearchChange={handleSearchChange}
+          bulkActionButton={
+            selectedRoleIds.length > 0 ? (
+              <button
+                onClick={handleBulkDeleteTrigger}
+                className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-lg hover:bg-red-100 transition font-semibold"
+              >
+                <Trash2 size={18} />
+                Delete Selected ({selectedRoleIds.length})
+              </button>
+            ) : undefined
+          }
         />
 
-        {/* Bulk Delete Button */}
-        {selectedRoleIds.length > 0 && (
-          <div className="mb-4 flex justify-end">
-            <button
-              onClick={handleBulkDelete}
-              className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 border border-red-300 transition font-medium flex items-center gap-2"
-            >
-              <FaTrash size={14} />
-              Delete Selected ({selectedRoleIds.length})
-            </button>
+        {/* Roles List */}
+        {roles.length > 0 ? (
+          <RoleList
+            roles={roles}
+            selectedRoleIds={selectedRoleIds}
+            onEdit={handleEditClick}
+            onDelete={handleDeleteRole}
+            onSelectRole={handleSelectRole}
+            onSelectAll={handleSelectAll}
+            onInfo={handleInfoClick}
+          />
+        ) : (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
+            <p className="text-gray-500 text-lg">
+              {searchTerm ? 'No roles found matching your search' : 'No roles available'}
+            </p>
           </div>
         )}
+
+        {/* Pagination */}
+        <SimplePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
 
         {/* Modals */}
         {showModal && (
@@ -374,56 +371,24 @@ const RoleManagementPage: React.FC = () => {
         {showInfoModal && selectedRoleForInfo && (
           <RoleInfoModal
             role={selectedRoleForInfo}
-            onClose={() => {
-              setShowInfoModal(false);
-              setSelectedRoleForInfo(null);
-            }}
+            onClose={handleInfoModalClose}
           />
         )}
 
         <DeleteConfirmationModal
-          isOpen={showDeleteModal}
-          onClose={() => setShowDeleteModal(false)}
+          isOpen={rolesToDelete.length > 0}
+          onClose={() => setRolesToDelete([])}
           onConfirm={confirmDelete}
-          title={roleNamesToDelete.length > 1 ? 'Delete Multiple Roles?' : 'Delete Role?'}
+          title={rolesToDelete.length > 1 ? "Bulk Delete Roles" : "Delete Role"}
           message={
-            roleNamesToDelete.length > 1
-              ? `Are you sure you want to delete ${roleNamesToDelete.length} roles? This action cannot be undone.`
-              : 'Are you sure you want to delete this role? This action cannot be undone.'
+            rolesToDelete.length > 1
+              ? `Are you sure you want to delete these ${rolesToDelete.length} roles? This action cannot be undone.`
+              : `Are you sure you want to delete the role "${rolesToDelete[0]?.name}"? This action cannot be undone.`
           }
-          itemNames={roleNamesToDelete}
+          itemNames={rolesToDelete.map(r => r.name)}
           isDeleting={isDeleting}
           entityType="role"
         />
-
-        {/* Roles List */}
-        {roles.length > 0 ? (
-          <>
-            <RoleList
-              roles={roles}
-              selectedRoleIds={selectedRoleIds}
-              onEdit={handleEditClick}
-              onSelectRole={handleSelectRole}
-              onSelectAll={handleSelectAll}
-              onInfo={handleInfoClick}
-            />
-            
-            {/* Pagination */}
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              totalItems={pagination.totalItems}
-              itemsPerPage={pagination.itemsPerPage}
-              onPageChange={handlePageChange}
-            />
-          </>
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-lg">
-              {searchTerm ? 'No roles found matching your search' : 'No roles available'}
-            </p>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );

@@ -1,3 +1,4 @@
+// src/pages/UserManagementPage.tsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { type User } from '../types/user.types.ts';
 import { fetchUsers, deleteUserApi, addUserApi, updateUserApi } from '../api/userApi.js';
@@ -5,6 +6,9 @@ import UserTable from '../components/user/UserTable';
 import UserDetailsModal from '../components/user/UserDetailsModal';
 import AddUserModal from '../components/user/AddUserModal.js';
 import DeleteConfirmationModal from '../components/common/DeleteConfirmationModal';
+import SearchWithActions from '../components/common/SearchWithActions';
+import SimplePagination from '../components/common/SimplePagination';
+import { useDebounce } from '../hooks/useDebounce';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import DashboardLayout from '../layouts/DashboardLayout.tsx';
@@ -24,16 +28,19 @@ function UserManagementPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(5);
 
+  // Debounce search term to reduce API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+
   const loadUsers = useCallback(async () => {
     try {
-      const response = await fetchUsers(currentPage, limit, searchTerm); 
+      const response = await fetchUsers(currentPage, limit, debouncedSearchTerm); 
       setUsers(response.data);
       setCurrentPage(response.currentPage);
       setTotalPages(response.totalPages);
     } catch (error) {
       toast.error("Failed to fetch users.");
     }
-  }, [currentPage, limit, searchTerm]);
+  }, [currentPage, limit, debouncedSearchTerm]);
 
   useEffect(() => {
     loadUsers(); 
@@ -44,33 +51,33 @@ function UserManagementPage() {
     return users.filter(user => user._id !== currentUser?._id);
   }, [users, currentUser]);
 
-  const handleSelectUser = (id: string) => {
+  const handleSelectUser = useCallback((id: string) => {
     setSelectedUserIds(prev => 
       prev.includes(id) ? prev.filter(uid => uid !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const handleSelectAll = (checked: boolean) => {
+  const handleSelectAll = useCallback((checked: boolean) => {
     if (checked) {
       setSelectedUserIds(filteredUsers.map(u => u._id));
     } else {
       setSelectedUserIds([]);
     }
-  };
+  }, [filteredUsers]);
 
-  const handleDeleteUser = (id: string) => {
+  const handleDeleteUser = useCallback((id: string) => {
     const user = users.find(u => u._id === id);
     if (user) {
       setUsersToDelete([user]);
     }
-  };
+  }, [users]);
 
-  const handleBulkDeleteTrigger = () => {
+  const handleBulkDeleteTrigger = useCallback(() => {
     const selectedUsers = users.filter(u => selectedUserIds.includes(u._id));
     setUsersToDelete(selectedUsers);
-  };
+  }, [users, selectedUserIds]);
 
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
     if (usersToDelete.length === 0) return;
     setIsDeleting(true);
     const loadingToastId = toast.loading(`Deleting ${usersToDelete.length} user(s)...`);
@@ -98,9 +105,9 @@ function UserManagementPage() {
     } finally {
       setIsDeleting(false);
     }
-  };
+  }, [usersToDelete, loadUsers]);
 
-  const handleUpdateUser = async (id: string, updates: Partial<User>) => {
+  const handleUpdateUser = useCallback(async (id: string, updates: Partial<User>) => {
     const loadingToastId = toast.loading('Updating user...');
     try {
       const updatedUserFromServer = await updateUserApi(id, updates);
@@ -110,15 +117,23 @@ function UserManagementPage() {
     } catch (error: any) {
       toast.update(loadingToastId, { render: 'Failed to update user', type: 'error', isLoading: false, autoClose: 3000 });
     }
-  };
+  }, [selectedUser]);
 
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) setCurrentPage(page);
-  };
+  const handlePageChange = useCallback((page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  }, [totalPages]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page on search
+  }, []);
 
   return (
     <DashboardLayout>
       <div className="">
+        {/* Header */}
         <header className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">User Management</h1>
           <button
@@ -129,32 +144,25 @@ function UserManagementPage() {
           </button>
         </header>
         
-        <div className="flex gap-4 mb-4 items-center">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              placeholder="Search users by name or email..."
-              className="border p-2.5 w-full rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1); 
-              }}
-            />
-          </div>
+        {/* Search with Bulk Actions */}
+        <SearchWithActions
+          searchTerm={searchTerm}
+          placeholder="Search users by name or email..."
+          onSearchChange={handleSearchChange}
+          bulkActionButton={
+            selectedUserIds.length > 0 ? (
+              <button
+                onClick={handleBulkDeleteTrigger}
+                className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-lg hover:bg-red-100 transition font-semibold"
+              >
+                <Trash2 size={18} />
+                Delete Selected ({selectedUserIds.length})
+              </button>
+            ) : undefined
+          }
+        />
 
-          {/* Bulk Delete Button appears on right of search bar */}
-          {selectedUserIds.length > 0 && (
-            <button
-              onClick={handleBulkDeleteTrigger}
-              className="flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-lg hover:bg-red-100 transition font-semibold"
-            >
-              <Trash2 size={18} />
-              Delete Selected ({selectedUserIds.length})
-            </button>
-          )}
-        </div>
-
+        {/* User Table */}
         <UserTable 
           users={filteredUsers} 
           deleteUser={handleDeleteUser} 
@@ -165,24 +173,14 @@ function UserManagementPage() {
           onSelectAll={handleSelectAll}
         />
         
-        <div className="flex gap-2 items-center justify-center mt-6">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded disabled:opacity-50 transition text-sm"
-          >
-            Previous
-          </button>
-          <span className="text-gray-700 font-medium text-sm">Page {currentPage} of {totalPages}</span>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded disabled:opacity-50 transition text-sm"
-          >
-            Next
-          </button>
-        </div>
+        {/* Pagination */}
+        <SimplePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
 
+        {/* Modals */}
         {selectedUser && (
           <UserDetailsModal 
             user={selectedUser} 
@@ -192,7 +190,14 @@ function UserManagementPage() {
         )}
         
         {isAddModalOpen && (
-          <AddUserModal onClose={() => setIsAddModalOpen(false)} addUser={async (u) => { await addUserApi(u); setIsAddModalOpen(false); loadUsers(); }} />
+          <AddUserModal 
+            onClose={() => setIsAddModalOpen(false)} 
+            addUser={async (u) => { 
+              await addUserApi(u); 
+              setIsAddModalOpen(false); 
+              loadUsers(); 
+            }} 
+          />
         )}
 
         <DeleteConfirmationModal
