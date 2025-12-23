@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-  }, [permissions, user, token]);
+  }, []);
 
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {

@@ -1,3 +1,5 @@
+// src/components/role/RoleInfoModal.tsx
+
 import React from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { permissionsMap, formatPermissionName } from '../../utils/permissions';
