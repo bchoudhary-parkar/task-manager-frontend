@@ -1,4 +1,3 @@
-// src/routes/ProtectedRoute.tsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +12,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requiredPermission 
 }) => {
-  const { token, isLoading, hasPermission, user } = useAuth();
+  const { token, isLoading, hasPermission, user, permissions } = useAuth();
 
   if (isLoading) {
     return (
@@ -29,6 +28,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check if user is authenticated
   if (!token) {
     return <Navigate to="/login" replace />;
+  }
+
+  // 🚦 If a permission is required, wait until user/permissions are actually available
+  const permsReady = !!user && (permissions?.length ?? 0) > 0;
+
+  if (requiredPermission && !permsReady) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading permissions...</p>
+        </div>
+      </div>
+    );
   }
 
   // Check if user has required permission (if specified)

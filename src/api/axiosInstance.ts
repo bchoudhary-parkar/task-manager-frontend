@@ -36,6 +36,9 @@ axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error: AxiosError<{ message: string }>) => {
     const status = error.response?.status;
+    const message = error.response?.data?.message || '';
+
+    // 401 -> unauthenticated
     if (status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -43,8 +46,18 @@ axiosInstance.interceptors.response.use(
         window.location.href = '/login';
       }
     }
+
+    // 403 -> inactive/suspended -> force logout
+    if (status === 403 && /suspended|inactive/i.test(message)) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login?reason=deactivated';
+      }
+    }
+
     return Promise.reject(error);
   }
 );
 
-export default axiosInstance
+export default axiosInstance;

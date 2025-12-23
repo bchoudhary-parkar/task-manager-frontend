@@ -1,4 +1,3 @@
-// src/pages/Dashboard.tsx
 import React, { useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../layouts/DashboardLayout';
@@ -8,8 +7,10 @@ import PERMISSIONS_MAP from '../constants/permissions';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user, hasPermission, permissions, isLoading } = useAuth();
-  
+
+  // ⬅️ Pull token + refreshUser from AuthContext
+  const { user, hasPermission, permissions, isLoading, token, refreshUser } = useAuth();
+
   const allCards = [
     {
       title: 'User Management',
@@ -43,19 +44,19 @@ const Dashboard: React.FC = () => {
     }
   ];
 
-  // ✅ Use useMemo to recalculate when permissions change
-  const visibleCards = useMemo(() => {
-    const cards = allCards.filter(card => hasPermission(card.requiredPermission));
-    return cards;
-  }, [permissions, user]); // Recalculate when permissions or user changes
-
-  // Debug effect - only logs when permissions actually change
   useEffect(() => {
-    if (user && permissions.length > 0) {
+    if (token && !user) {
+      void refreshUser();
     }
-  }, [permissions.length]); // Only log when permission count changes
+  }, [token, user, refreshUser]);
 
-  // Show loading state while data is being fetched
+  const visibleCards = useMemo(() => {
+    return allCards.filter(card => hasPermission(card.requiredPermission));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [permissions, user]);
+
+
+
   if (isLoading) {
     return (
       <DashboardLayout>

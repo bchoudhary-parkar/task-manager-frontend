@@ -44,14 +44,19 @@ const Login: React.FC = () => {
       }
 
       if (response.success && response.token && response.user) {
+        // 1) Save token so refreshUser can authenticate
         localStorage.setItem('token', response.token);
         setToken(response.token);
-        
-        await refreshUser();
-        
+
+        // 2) (Optional) Set the lightweight user now for immediate header/name display
+        // Do NOT set the user *after* refreshUser (that overwrites permissions)
         setUser(response.user);
-        
-        navigate('/dashboard');
+
+        // 3) Fetch the full profile (with permissions) and let it override the user
+        await refreshUser();
+
+        // 4) Navigate after profile is ready
+        navigate('/dashboard', { replace: true });
       } else {
         setErrors({ general: response.message || 'Login failed' });
       }

@@ -1,4 +1,3 @@
-// src/context/AuthContext.tsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { User } from '../types/auth.types';
@@ -25,25 +24,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const permissions = user?.Permissions || user?.permissions || [];
 
+  const logout = () => {
+    localStorage.removeItem('token');
+    setToken(null);
+    setUser(null);
+    window.location.href = '/login';
+  };
+
   const refreshUser = async () => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       try {
-        setIsLoading(true); 
+        setIsLoading(true);
         const response = await authApi.getCurrentUser();
         if (response.success && response.user) {
           setUser(response.user);
+          // 🚨 Proactive guard: if server says inactive, logout immediately
+          const status = (response.user as any)?.status;
+          if (status === 'not available') {
+            localStorage.removeItem('token');
+            setToken(null);
+            setUser(null);
+            window.location.href = '/login?reason=deactivated';
+            return;
+          }
         }
       } catch (error) {
         console.error('Failed to refresh user:', error);
       } finally {
-        setIsLoading(false); 
+        setIsLoading(false);
       }
     }
   };
 
   const hasPermission = (permission: number): boolean => {
-    return permissions.includes(permission) || permissions.includes(4); 
+    return permissions.includes(permission) || permissions.includes(4);
   };
 
   useEffect(() => {
@@ -55,6 +70,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (response.success && response.user) {
             setUser(response.user);
             setToken(storedToken);
+            // 🚨 Proactive guard here as well
+            const status = (response.user as any)?.status;
+            if (status === 'not available') {
+              localStorage.removeItem('token');
+              setToken(null);
+              setUser(null);
+              window.location.href = '/login?reason=deactivated';
+              return;
+            }
           } else {
             localStorage.removeItem('token');
             setToken(null);
@@ -72,6 +96,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   useEffect(() => {
+    // (Reserved for future logic)
   }, []);
 
   useEffect(() => {
@@ -90,22 +115,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
-    window.location.href = '/login';
-  };
-
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        setUser, 
-        token, 
-        setToken, 
-        isLoading, 
-        permissions, 
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        token,
+        setToken,
+        isLoading,
+        permissions,
         logout,
         refreshUser,
         hasPermission
