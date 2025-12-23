@@ -21,7 +21,6 @@ function UserManagementPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const { user: currentUser } = useAuth();
-  
   const [usersToDelete, setUsersToDelete] = useState<User[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -180,7 +179,7 @@ function UserManagementPage() {
           onPageChange={handlePageChange}
         />
 
-        {/* Modals */}
+
         {selectedUser && (
           <UserDetailsModal 
             user={selectedUser} 

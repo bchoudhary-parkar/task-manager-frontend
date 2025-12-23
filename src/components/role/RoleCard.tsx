@@ -1,4 +1,3 @@
-// src/components/role/RoleCard.tsx
 import React from 'react';
 import { FaEdit, FaInfoCircle } from 'react-icons/fa';
 import { permissionsMap, formatPermissionName } from '../../utils/permissions';
@@ -11,22 +10,23 @@ interface RoleCardProps {
   onInfo: () => void;
 }
 
-const RoleCard: React.FC<RoleCardProps> = ({ 
-  role, 
-  isSelected, 
-  onEdit, 
+const RoleCard: React.FC<RoleCardProps> = ({
+  role,
+  isSelected,
+  onEdit,
   onSelect,
-  onInfo
+  onInfo,
 }) => {
   const permissionNames = role.permissions
     .filter(code => code !== permissionsMap.all)
     .map(code => {
-      const key = Object.keys(permissionsMap).find(k => permissionsMap[k] === code);
+      const key = Object.keys(permissionsMap).find(k => (permissionsMap as any)[k] === code);
       return key ? formatPermissionName(key) : '';
     })
     .filter(Boolean)
     .join(', ');
 
+  // Keep the truncation helper (used as fallback when not using title or tooltip)
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
@@ -44,59 +44,48 @@ const RoleCard: React.FC<RoleCardProps> = ({
         />
       </td>
 
-      {/* Role Name */}
+      {/* Role Name (ellipsis + hover shows full via title) */}
       <td className="px-6 py-4">
-        <span className="text-gray-800 font-medium">
-          {truncateText(role.name, 30)}
-        </span>
-      </td>
-
-      {/* Description */}
-      <td className="px-6 py-4">
-        <span className="text-gray-600">
-          {role.description ? truncateText(role.description, 50) : '-'}
-        </span>
-      </td>
-
-      {/* Permissions */}
-      <td className="px-6 py-4">
-        <span className="text-gray-600">
-          {truncateText(permissionNames, 60)}
-        </span>
-      </td>
-
-      {/* Info */}
-      <td className="px-6 py-4 text-center">
-        <button 
-          onClick={onInfo} 
-          className="text-gray-600 hover:text-blue-800 transition p-1"
-          title="View details"
+        <span
+          className="text-gray-800 font-medium block max-w-[240px] whitespace-nowrap overflow-hidden text-ellipsis"
+          title={role.name}
         >
-          <FaInfoCircle size={18} />
-        </button>
+          {role.name}
+        </span>
       </td>
+
+      {/* Description (ellipsis + hover shows full via title) */}
+      <td className="px-6 py-4">
+        <span
+          className="text-gray-600 block max-w-[320px] whitespace-nowrap overflow-hidden text-ellipsis"
+          title={role.description || '-'}
+        >
+          {role.description ? role.description : '-'}
+        </span>
+      </td>
+
+      {/* Permissions (ellipsis + hover shows full via title) */}
+      <td className="px-6 py-4">
+        <span
+          className="text-gray-600 block max-w-[360px] whitespace-nowrap overflow-hidden text-ellipsis"
+          title={permissionNames || 'No permissions'}
+        >
+          {permissionNames ? permissionNames : 'No permissions'}
+        </span>
+      </td>
+
+
 
       {/* Edit */}
       <td className="px-6 py-4 text-center">
-        <button 
-          onClick={onEdit} 
+        <button
+          onClick={onEdit}
           className="text-blue-600 hover:text-blue-800 transition p-1"
           title="Edit role"
         >
           <FaEdit size={16} />
         </button>
       </td>
-
-      {/* Delete */}
-      {/* <td className="px-6 py-4 text-center">
-        <button 
-          onClick={onDelete} 
-          className="text-gray-500 hover:text-red-600 transition p-1"
-          title="Delete role"
-        >
-          <FaTrash size={16} />
-        </button>
-      </td> */}
     </tr>
   );
 };

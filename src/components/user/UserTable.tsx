@@ -2,9 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { type User } from '../../types/user.types';
 import { getAllRoles } from '../../api/roleApi';
 import type { Role } from '../../types/role.types';
-import { FaEdit, FaInfoCircle, FaUserCircle } from 'react-icons/fa';
+import { FaEdit, FaUserCircle } from 'react-icons/fa'; // ❌ removed FaInfoCircle
 import RoleUpdateModal from './RoleUpdateModal';
-
 
 const UserAvatar = React.memo(({ name, picture }: { name: string; picture?: string }) => {
   const fallbackUrl = useMemo(
@@ -43,7 +42,7 @@ const UserAvatar = React.memo(({ name, picture }: { name: string; picture?: stri
 interface UserTableProps {
   users: User[];
   deleteUser: (id: string) => void;
-  openDetails: (user: User) => void;
+  openDetails: (user: User) => void;      // used for Edit modal
   updateUser: (id: string, updates: Partial<User>) => void;
   selectedUserIds: string[];
   onSelectUser: (id: string) => void;
@@ -97,11 +96,6 @@ function UserTable({
     setRoleUpdateModal({ isOpen: false, userId: '', userName: '', currentRole: null });
   };
 
-  const truncateText = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
-
   const isAllSelected = users.length > 0 && selectedUserIds.length === users.length;
 
   return (
@@ -121,14 +115,15 @@ function UserTable({
               <th className="px-6 py-3">User</th>
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3">Role</th>
-              <th className="px-6 py-3 text-center">Info</th>
+              {/* ❌ Removed Info */}
               <th className="px-6 py-3 text-center">Edit</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                {/* ✅ columns: checkbox + User + Status + Role + Edit = 5 */}
+                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                   No users found
                 </td>
               </tr>
@@ -147,20 +142,28 @@ function UserTable({
                     />
                   </td>
 
+                  {/* User cell with avatar + ellipsis + tooltip */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <UserAvatar name={user.name} picture={user.picture} />
                       <div>
-                        <p className="font-medium text-gray-800">
-                          {truncateText(user.name, 25)}
+                        <p
+                          className="font-medium text-gray-800 block max-w-[220px] truncate"
+                          title={user.name}
+                        >
+                          {user.name}
                         </p>
-                        <p className="text-xs text-gray-500">
-                          {truncateText(user.email, 30)}
+                        <p
+                          className="text-xs text-gray-500 block max-w-[260px] truncate"
+                          title={user.email}
+                        >
+                          {user.email}
                         </p>
                       </div>
                     </div>
                   </td>
 
+                  {/* Status */}
                   <td className="px-6 py-4">
                     <select
                       value={user.status}
@@ -176,6 +179,7 @@ function UserTable({
                     </select>
                   </td>
 
+                  {/* Role button (ellipsis + tooltip) */}
                   <td className="px-6 py-4">
                     <button
                       onClick={() => handleRoleClick(user)}
@@ -184,24 +188,20 @@ function UserTable({
                           ? 'bg-purple-50 text-purple-700 border-purple-200'
                           : 'bg-gray-50 text-gray-500 border-gray-200'
                       }`}
+                      title={user.role ? user.role.name : 'Member'}
                     >
-                      {user.role ? truncateText(user.role.name, 20) : 'Member'}
+                      <span className="block max-w-[200px] truncate">
+                        {user.role ? user.role.name : 'Member'}
+                      </span>
                     </button>
                   </td>
 
-                  <td className="px-6 py-4 text-center">
-                    <button
-                      onClick={() => openDetails(user)}
-                      className="text-gray-600 hover:text-blue-800 transition p-1"
-                    >
-                      <FaInfoCircle size={18} />
-                    </button>
-                  </td>
-
+                  {/* Edit -> opens details modal */}
                   <td className="px-6 py-4 text-center">
                     <button
                       onClick={() => openDetails(user)}
                       className="text-blue-600 hover:text-blue-800 transition p-1"
+                      title="Edit user"
                     >
                       <FaEdit size={16} />
                     </button>

@@ -70,7 +70,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           if (response.success && response.user) {
             setUser(response.user);
             setToken(storedToken);
-            // 🚨 Proactive guard here as well
             const status = (response.user as any)?.status;
             if (status === 'not available') {
               localStorage.removeItem('token');

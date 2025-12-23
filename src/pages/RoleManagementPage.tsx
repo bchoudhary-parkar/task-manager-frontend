@@ -1,9 +1,7 @@
-// src/pages/RoleManagementPage.tsx
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { getRoles, createRole, updateRole, deleteRole } from '../api/roleApi';
 import RoleModal from '../components/role/RoleModal';
-import RoleInfoModal from '../components/role/RoleInfoModal';
 import RoleList from '../components/role/RoleList';
 import SearchWithActions from '../components/common/SearchWithActions';
 import SimplePagination from '../components/common/SimplePagination';
@@ -23,7 +21,7 @@ const RoleManagementPage: React.FC = () => {
 
   // Modal states
   const [showModal, setShowModal] = useState(false);
-  const [showInfoModal, setShowInfoModal] = useState(false);
+  // Removed: showInfoModal
 
   // Form states
   const [name, setName] = useState('');
@@ -37,8 +35,7 @@ const RoleManagementPage: React.FC = () => {
   const [rolesToDelete, setRolesToDelete] = useState<any[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Info modal state
-  const [selectedRoleForInfo, setSelectedRoleForInfo] = useState<any>(null);
+  // Removed: selectedRoleForInfo
 
   // Checkbox selection
   const [selectedRoleIds, setSelectedRoleIds] = useState<string[]>([]);
@@ -49,7 +46,7 @@ const RoleManagementPage: React.FC = () => {
   // Debounce search term to reduce API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  // Fetch roles - using useCallback like UserManagement
+  // Fetch roles
   const fetchRoles = useCallback(async () => {
     try {
       setLoading(true);
@@ -79,7 +76,6 @@ const RoleManagementPage: React.FC = () => {
     }
   }, [currentPage, limit, debouncedSearchTerm]);
 
-  // Fetch when dependencies change
   useEffect(() => {
     fetchRoles();
     setSelectedRoleIds([]); // Clear selection when page or search changes
@@ -126,7 +122,7 @@ const RoleManagementPage: React.FC = () => {
 
       resetFormState();
       setShowModal(false);
-      
+
       toast.update(loadingToastId, {
         render: isEditMode ? 'Role updated successfully' : 'Role created successfully',
         type: 'success',
@@ -186,12 +182,11 @@ const RoleManagementPage: React.FC = () => {
     }
   }, [roles]);
 
+  // Keep the info click handler (no UI change), but do not show a modal
   const handleInfoClick = useCallback((roleId: string) => {
-    const role = roles.find(r => r._id === roleId);
-    if (role) {
-      setSelectedRoleForInfo(role);
-      setShowInfoModal(true);
-    }
+    // No-op to keep UI intact. Optionally:
+    // const role = roles.find(r => r._id === roleId);
+    // if (role) toast.info(`Role: ${role.name}`);
   }, [roles]);
 
   const handleDeleteRole = useCallback((roleId: string) => {
@@ -214,7 +209,7 @@ const RoleManagementPage: React.FC = () => {
 
     try {
       await Promise.all(rolesToDelete.map(r => deleteRole(r._id)));
-      
+
       toast.update(loadingToastId, {
         render: `${rolesToDelete.length > 1 ? 'Roles' : 'Role'} deleted successfully`,
         type: 'success',
@@ -263,12 +258,8 @@ const RoleManagementPage: React.FC = () => {
     setShowModal(true);
   }, [resetFormState]);
 
-  const handleInfoModalClose = useCallback(() => {
-    setShowInfoModal(false);
-    setSelectedRoleForInfo(null);
-  }, []);
+  // Removed: handleInfoModalClose
 
-  // Pagination Handlers
   const handlePageChange = useCallback((page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -277,10 +268,9 @@ const RoleManagementPage: React.FC = () => {
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchTerm(value);
-    setCurrentPage(1); // Reset to first page on search
+    setCurrentPage(1);
   }, []);
 
-  // Loading State
   if (loading && roles.length === 0) {
     return (
       <DashboardLayout>
@@ -332,9 +322,9 @@ const RoleManagementPage: React.FC = () => {
             roles={roles}
             selectedRoleIds={selectedRoleIds}
             onEdit={handleEditClick}
-            onDelete={handleDeleteRole}
+            // KEEP UI props the same; handler does nothing now
             onSelectRole={handleSelectRole}
-            onSelectAll={handleSelectAll}
+            onSelectAll={(checked: boolean) => handleSelectAll(checked)}
             onInfo={handleInfoClick}
           />
         ) : (
@@ -368,12 +358,7 @@ const RoleManagementPage: React.FC = () => {
           />
         )}
 
-        {showInfoModal && selectedRoleForInfo && (
-          <RoleInfoModal
-            role={selectedRoleForInfo}
-            onClose={handleInfoModalClose}
-          />
-        )}
+        {/* Removed RoleInfoModal */}
 
         <DeleteConfirmationModal
           isOpen={rolesToDelete.length > 0}
