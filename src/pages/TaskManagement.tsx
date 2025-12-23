@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/TaskManagementPage.tsx
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { taskApi } from '../api/taskApi';
 import type { Task, TaskStatus, CreateTaskDTO } from '../types/task.types';
@@ -318,8 +319,7 @@ const TaskManagementPage = () => {
 
   return (
     <DashboardLayout>
-      {/* Main container - Full height, single scroll */}
-      <div className=" flex flex-col h-128 bg-gray-50"> 
+      <div className="flex flex-col h-138 bg-gray-50">
         <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
           <h1 className="text-2xl font-bold text-gray-800 mb-3">Task Board</h1>
           <SearchBar
