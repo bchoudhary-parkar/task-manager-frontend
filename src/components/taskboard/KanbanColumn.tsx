@@ -100,7 +100,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
       {/* TASK LIST - NO SCROLL, just flows naturally when scroll*/}
       <div className="p-3 space-y-3 mt-3">
         {tasks.length === 0 ? (
-          <div className="flex items-center justify-center h-65 text-gray-400 text-sm">
+          <div className="flex items-center justify-center h-70 text-gray-400 text-sm">
             <p>No tasks</p>
           </div>
         ) : (
