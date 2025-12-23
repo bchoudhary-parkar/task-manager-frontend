@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// src/pages/TaskManagementPage.tsx
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { taskApi } from '../api/taskApi';
 import type { Task, TaskStatus, CreateTaskDTO } from '../types/task.types';
@@ -6,12 +7,11 @@ import SearchBar from '../components/taskboard/SearchBar';
 import KanbanColumn from '../components/taskboard/KanbanColumn';
 import TaskModal from '../components/taskboard/TaskModal';
 import TaskDetailsModal from '../components/taskboard/TaskDetailsModal';
-import TaskDeletionModal from '../components/taskboard/TaskDeletionModal';
+import DeleteConfirmationModal from '../components/common/DeleteConfirmationModal';
 import DashboardLayout from '../layouts/DashboardLayout';
-
 const TaskManagementPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
+  const [totalTasksCount, setTotalTasksCount] = useState(0); 
   const [searchQuery, setSearchQuery] = useState('');
   const [userFilter, setUserFilter] = useState('');
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
@@ -32,60 +32,55 @@ const TaskManagementPage = () => {
     { id: 'DONE', title: 'Done', color: 'bg-green-100' },
   ];
 
+  // Fetch tasks function (only for initial load with loading state)
+  const fetchTasks = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await taskApi.getTasks({});
+      setTasks(data);
+      setTotalTasksCount(data.length); 
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to fetch tasks');
+      setTasks([]);
+      setTotalTasksCount(0);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  
   useEffect(() => {
     fetchTasks();
   }, []);
 
   useEffect(() => {
-    let filtered = tasks;
+    const debounceTimer = setTimeout(() => {
+      const performSearch = async () => {
+        try {
 
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (task) =>
-          task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          task.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
+          const data = await taskApi.getTasks({
+            search: searchQuery || undefined,
+            assignedTo: userFilter || undefined,
+          });
 
-    if (userFilter) {
-      filtered = filtered.filter((task) => {
-        const assignedToName = typeof task.assignedTo === 'object' && task.assignedTo !== null
-          ? task.assignedTo.name
-          : task.assignedTo;
-        
-        return assignedToName?.toLowerCase().includes(userFilter.toLowerCase());
-      });
-    }
-
-    setFilteredTasks(filtered);
-  }, [searchQuery, userFilter, tasks]);
-
-  const fetchTasks = async () => {
-    try {
-      setLoading(true);
-      const data = await taskApi.getTasks();
-      setTasks(data);
-    } catch (error: any) {
-      console.error('Error fetching tasks:', error);
-      toast.error(error.response?.data?.message || 'Failed to fetch tasks');
-      setTasks([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const uniqueUsers = Array.from(
-    new Set(
-      tasks
-        .filter(t => t.assignedTo)
-        .map((t) => {
-          if (typeof t.assignedTo === 'object' && t.assignedTo !== null) {
-            return t.assignedTo.name;
+          setTasks(data);
+          
+          if (!searchQuery && !userFilter) {
+            setTotalTasksCount(data.length);
           }
-          return t.assignedTo;
-        })
-    )
-  );
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || 'Failed to fetch tasks');
+          setTasks([]);
+        }
+      };
+      
+      performSearch();
+    }, 500); 
+
+    return () => {
+      clearTimeout(debounceTimer);
+    };
+  }, [searchQuery, userFilter]);
 
   const handleDragStart = (task: Task) => {
     setDraggedTask(task);
@@ -122,17 +117,15 @@ const TaskManagementPage = () => {
 
     setDraggedTask(null);
   };
-  
+
   const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
-    const task = tasks.find(t => t._id === taskId);
+    const task = tasks.find((t) => t._id === taskId);
     if (!task) return;
 
     const originalStatus = task.status;
 
     setTasks((prev) =>
-      prev.map((t) =>
-        t._id === taskId ? { ...t, status: newStatus } : t
-      )
+      prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t))
     );
 
     if (selectedTask && selectedTask._id === taskId) {
@@ -147,9 +140,7 @@ const TaskManagementPage = () => {
       toast.error(error.response?.data?.message || 'Failed to update task status');
 
       setTasks((prev) =>
-        prev.map((t) =>
-          t._id === taskId ? { ...t, status: originalStatus } : t
-        )
+        prev.map((t) => (t._id === taskId ? { ...t, status: originalStatus } : t))
       );
       if (selectedTask && selectedTask._id === taskId) {
         setSelectedTask({ ...selectedTask, status: originalStatus });
@@ -184,9 +175,7 @@ const TaskManagementPage = () => {
     const originalSubtasks = [...task.subtasks];
 
     setTasks((prev) =>
-      prev.map((t) =>
-        t._id === taskId ? { ...t, subtasks: updatedSubtasks } : t
-      )
+      prev.map((t) => (t._id === taskId ? { ...t, subtasks: updatedSubtasks } : t))
     );
 
     if (selectedTask && selectedTask._id === taskId) {
@@ -206,9 +195,7 @@ const TaskManagementPage = () => {
       toast.error(error.response?.data?.message || 'Failed to update subtask');
 
       setTasks((prev) =>
-        prev.map((t) =>
-          t._id === taskId ? { ...t, subtasks: originalSubtasks } : t
-        )
+        prev.map((t) => (t._id === taskId ? { ...t, subtasks: originalSubtasks } : t))
       );
       if (selectedTask && selectedTask._id === taskId) {
         setSelectedTask({ ...selectedTask, subtasks: originalSubtasks });
@@ -222,8 +209,6 @@ const TaskManagementPage = () => {
     );
 
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-
       const payload: CreateTaskDTO = {
         title: taskData.title,
         description: taskData.description,
@@ -232,7 +217,6 @@ const TaskManagementPage = () => {
         dueDate: taskData.dueDate,
         tags: taskData.tags || [],
         subtasks: taskData.subtasks || [],
-        createdBy: user.name || 'Current User',
         status: editingTask?.status || 'TODO',
       };
 
@@ -259,8 +243,8 @@ const TaskManagementPage = () => {
         });
       } else {
         const newTask = await taskApi.createTask(payload);
-        
         setTasks((prev) => [...prev, newTask]);
+        
         toast.update(loadingToastId, {
           render: 'Task created successfully',
           type: 'success',
@@ -318,6 +302,7 @@ const TaskManagementPage = () => {
   const handleClearFilters = () => {
     setSearchQuery('');
     setUserFilter('');
+    fetchTasks();
     toast.success('Filters cleared');
   };
 
@@ -334,8 +319,7 @@ const TaskManagementPage = () => {
 
   return (
     <DashboardLayout>
-      {/* Main container - Full height, single scroll */}
-      <div className=" flex flex-col h-128 bg-gray-50"> 
+      <div className="flex flex-col h-138 bg-gray-50">
         <div className="flex-shrink-0 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
           <h1 className="text-2xl font-bold text-gray-800 mb-3">Task Board</h1>
           <SearchBar
@@ -343,19 +327,18 @@ const TaskManagementPage = () => {
             setSearchQuery={setSearchQuery}
             userFilter={userFilter}
             setUserFilter={setUserFilter}
-            uniqueUsers={uniqueUsers}
-            filteredCount={filteredTasks.length}
-            totalCount={tasks.length}
+            uniqueUsers={[]}
+            filteredCount={tasks.length}
+            totalCount={totalTasksCount}
             onClearFilters={handleClearFilters}
             onNewTask={handleNewTask}
           />
         </div>
 
-        {/* Board Area - Single unified scroll */}
         <div className="flex-1 overflow-y-auto overflow-x-auto p-4 pt-0 pb-0">
           <div className="flex gap-3">
             {columns.map((column) => {
-              const columnTasks = filteredTasks.filter((t) => t.status === column.id);
+              const columnTasks = tasks.filter((t) => t.status === column.id);
 
               return (
                 <KanbanColumn
@@ -401,13 +384,15 @@ const TaskManagementPage = () => {
         />
       )}
 
-      <TaskDeletionModal
+      <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        title="Delete Task?"
-        message={`Are you sure you want to delete "${taskToDelete?.title}"? This will also delete all subtasks associated with this task.`}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This will also delete all subtasks associated with this task."
+        itemNames={taskToDelete ? [taskToDelete.title] : []}
         isDeleting={isDeleting}
+        entityType="task"
       />
     </DashboardLayout>
   );

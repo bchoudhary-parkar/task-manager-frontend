@@ -1,9 +1,9 @@
-
+// src/components/taskboard/SearchBar.tsx
 import React, { useEffect, useState } from 'react';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, X } from 'lucide-react';
 import { taskApi } from '../../api/taskApi';
-import type { TaskUser } from '../../types/task.types'; // Changed from User to TaskUser
- 
+import type { TaskUser } from '../../types/task.types';
+
 interface SearchBarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -15,7 +15,7 @@ interface SearchBarProps {
   onClearFilters: () => void;
   onNewTask: () => void;
 }
- 
+
 const SearchBar: React.FC<SearchBarProps> = ({
   searchQuery,
   setSearchQuery,
@@ -26,12 +26,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onClearFilters,
   onNewTask,
 }) => {
-  const [allUsers, setAllUsers] = useState<TaskUser[]>([]); 
- 
+  const [allUsers, setAllUsers] = useState<TaskUser[]>([]);
+
   useEffect(() => {
     fetchUsers();
   }, []);
- 
+
   const fetchUsers = async () => {
     try {
       const data = await taskApi.getUsersForAssignment({ page: 1, limit: 100 });
@@ -40,23 +40,37 @@ const SearchBar: React.FC<SearchBarProps> = ({
       console.error('Error fetching users:', error);
     }
   };
- 
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-4 mb-6 space-y-4">
       <div className="flex flex-wrap gap-4">
+        {/* Task Search Input */}
         <div className="flex-1 min-w-64">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="Search tasks by title or description..."
+              placeholder="Search tasks by Title or Description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full pl-10 pr-10 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
             />
+            {searchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
- 
+
+        {/* User Filter Dropdown */}
         <div className="w-64">
           <select
             value={userFilter}
@@ -65,13 +79,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
           >
             <option value="">All Users</option>
             {allUsers.map((user) => (
-              <option key={user._id} value={user.name}>
+              <option key={user._id} value={user._id}>
                 {user.name}
               </option>
             ))}
           </select>
         </div>
- 
+
+        {/* Create Task Button */}
         <button
           onClick={onNewTask}
           className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition flex items-center gap-2 font-medium"
@@ -79,7 +94,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
           Create Task
         </button>
       </div>
- 
+
+      {/* Filter Summary */}
       {(searchQuery || userFilter) && (
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <Filter className="w-4 h-4" />
@@ -97,6 +113,5 @@ const SearchBar: React.FC<SearchBarProps> = ({
     </div>
   );
 };
- 
+
 export default SearchBar;
- 
