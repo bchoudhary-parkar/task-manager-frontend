@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 import { taskApi } from '../../api/taskApi';
 import type { TaskUser } from '../../types/task.types';
-
+ 
 interface SearchBarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -15,7 +15,7 @@ interface SearchBarProps {
   onClearFilters: () => void;
   onNewTask: () => void;
 }
-
+ 
 const SearchBar: React.FC<SearchBarProps> = ({
   searchQuery,
   setSearchQuery,
@@ -27,11 +27,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onNewTask,
 }) => {
   const [allUsers, setAllUsers] = useState<TaskUser[]>([]);
-
+ 
   useEffect(() => {
     fetchUsers();
   }, []);
-
+ 
   const fetchUsers = async () => {
     try {
       const data = await taskApi.getUsersForAssignment({ page: 1, limit: 100 });
@@ -40,13 +40,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
       console.error('Error fetching users:', error);
     }
   };
-
+ 
   const handleClearSearch = () => {
     setSearchQuery('');
   };
-
+ 
   return (
-    <div className="bg-white rounded-lg shadow p-4 mb-6 space-y-4">
+    <div className="bg-white rounded-lg shadow p-2 mb-6 space-y-4">
       <div className="flex flex-wrap gap-4">
         {/* Task Search Input */}
         <div className="flex-1 min-w-64">
@@ -69,7 +69,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             )}
           </div>
         </div>
-
+ 
         {/* User Filter Dropdown */}
         <div className="w-64">
           <select
@@ -85,7 +85,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             ))}
           </select>
         </div>
-
+ 
         {/* Create Task Button */}
         <button
           onClick={onNewTask}
@@ -94,7 +94,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
           Create Task
         </button>
       </div>
-
+ 
       {/* Filter Summary */}
       {(searchQuery || userFilter) && (
         <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -113,5 +113,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
     </div>
   );
 };
-
+ 
 export default SearchBar;
+ 
