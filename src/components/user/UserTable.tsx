@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { type User } from '../../types/user.types';
 import { getAllRoles } from '../../api/roleApi';
 import type { Role } from '../../types/role.types';
-import { FaEdit, FaUserCircle } from 'react-icons/fa'; // ❌ removed FaInfoCircle
+import { FaEdit, FaUserCircle } from 'react-icons/fa';
 import RoleUpdateModal from './RoleUpdateModal';
 
 const UserAvatar = React.memo(({ name, picture }: { name: string; picture?: string }) => {
@@ -115,14 +115,12 @@ function UserTable({
               <th className="px-6 py-3">User</th>
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3">Role</th>
-              {/* ❌ Removed Info */}
               <th className="px-6 py-3 text-center">Edit</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {users.length === 0 ? (
               <tr>
-                {/* ✅ columns: checkbox + User + Status + Role + Edit = 5 */}
                 <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                   No users found
                 </td>
@@ -142,17 +140,11 @@ function UserTable({
                     />
                   </td>
 
-                  {/* User cell with avatar + ellipsis + tooltip */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <UserAvatar name={user.name} picture={user.picture} />
                       <div>
-                        <p
-                          className="font-medium text-gray-800 block max-w-[220px] truncate"
-                          title={user.name}
-                        >
-                          {user.name}
-                        </p>
+                        <p className="font-medium text-gray-800 block max-w-[220px] truncate" title={user.name}>{user.name}</p>
                         <p
                           className="text-xs text-gray-500 block max-w-[260px] truncate"
                           title={user.email}
@@ -163,7 +155,6 @@ function UserTable({
                     </div>
                   </td>
 
-                  {/* Status */}
                   <td className="px-6 py-4">
                     <select
                       value={user.status}
@@ -179,7 +170,6 @@ function UserTable({
                     </select>
                   </td>
 
-                  {/* Role button (ellipsis + tooltip) */}
                   <td className="px-6 py-4">
                     <button
                       onClick={() => handleRoleClick(user)}

@@ -26,7 +26,6 @@ const RoleCard: React.FC<RoleCardProps> = ({
     .filter(Boolean)
     .join(', ');
 
-  // Keep the truncation helper (used as fallback when not using title or tooltip)
   const truncateText = (text: string, maxLength: number) => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
@@ -34,7 +33,6 @@ const RoleCard: React.FC<RoleCardProps> = ({
 
   return (
     <tr className={`hover:bg-gray-50 transition ${isSelected ? 'bg-blue-50' : ''}`}>
-      {/* Checkbox */}
       <td className="px-6 py-4">
         <input
           type="checkbox"
@@ -44,7 +42,6 @@ const RoleCard: React.FC<RoleCardProps> = ({
         />
       </td>
 
-      {/* Role Name (ellipsis + hover shows full via title) */}
       <td className="px-6 py-4">
         <span
           className="text-gray-800 font-medium block max-w-[240px] whitespace-nowrap overflow-hidden text-ellipsis"
@@ -54,7 +51,6 @@ const RoleCard: React.FC<RoleCardProps> = ({
         </span>
       </td>
 
-      {/* Description (ellipsis + hover shows full via title) */}
       <td className="px-6 py-4">
         <span
           className="text-gray-600 block max-w-[320px] whitespace-nowrap overflow-hidden text-ellipsis"
@@ -64,7 +60,6 @@ const RoleCard: React.FC<RoleCardProps> = ({
         </span>
       </td>
 
-      {/* Permissions (ellipsis + hover shows full via title) */}
       <td className="px-6 py-4">
         <span
           className="text-gray-600 block max-w-[360px] whitespace-nowrap overflow-hidden text-ellipsis"
@@ -76,7 +71,6 @@ const RoleCard: React.FC<RoleCardProps> = ({
 
 
 
-      {/* Edit */}
       <td className="px-6 py-4 text-center">
         <button
           onClick={onEdit}

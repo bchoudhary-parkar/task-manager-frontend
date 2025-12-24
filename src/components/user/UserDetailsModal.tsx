@@ -91,7 +91,7 @@ function UserDetailsModal({ user, onClose, updateUser }: UserDetailsModalProps) 
           {editMode ? (
             <div className="w-full space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1 ">Name</label>
                 <input
                   name="name"
                   value={formData.name}
@@ -142,8 +142,8 @@ function UserDetailsModal({ user, onClose, updateUser }: UserDetailsModalProps) 
             </div>
           ) : (
             <div className="w-full space-y-3 text-center">
-              <p className="text-xl font-bold text-gray-900">{user.name}</p>
-              <p className="text-gray-600">{user.email}</p>
+              <p className="text-xl font-bold text-gray-900 truncate" title={user.name}>{user.name}</p>
+              <p className="text-gray-600 truncate" title={user.email}>{user.email}</p>
 
               <div className="flex justify-center items-center gap-2 pt-2">
                 <span className="text-sm font-medium text-gray-600">Role:</span>
