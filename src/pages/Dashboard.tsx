@@ -4,13 +4,12 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import { Users, Shield, LayoutDashboard, Activity } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import PERMISSIONS_MAP from '../constants/permissions';
-
+ 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-
-  // ⬅️ Pull token + refreshUser from AuthContext
-  const { user, hasPermission, permissions, isLoading, token, refreshUser } = useAuth();
-
+ 
+  const { user, hasPermission, permissions, isLoading, token, refreshUser, status } = useAuth();
+ 
   const allCards = [
     {
       title: 'User Management',
@@ -43,20 +42,24 @@ const Dashboard: React.FC = () => {
       requiredPermission: PERMISSIONS_MAP.TASK_MANAGEMENT
     }
   ];
-
+ 
   useEffect(() => {
     if (token && !user) {
       void refreshUser();
     }
   }, [token, user, refreshUser]);
-
+ 
+  useEffect(() => {
+    if (status === 'not available') {
+      console.warn('⚠️ Dashboard detected user is not available');
+    }
+  }, [status]);
+ 
   const visibleCards = useMemo(() => {
     return allCards.filter(card => hasPermission(card.requiredPermission));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [permissions, user]);
-
-
-
+ 
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -69,7 +72,7 @@ const Dashboard: React.FC = () => {
       </DashboardLayout>
     );
   }
-
+ 
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -85,7 +88,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-
+ 
         {/* Quick Access Cards */}
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Access</h2>
@@ -136,5 +139,6 @@ const Dashboard: React.FC = () => {
     </DashboardLayout>
   );
 };
-
+ 
 export default Dashboard;
+ 

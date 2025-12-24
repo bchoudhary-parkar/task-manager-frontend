@@ -1,18 +1,14 @@
 // src/components/common/SearchWithActions.tsx
 import React from 'react';
 import { FaSearch } from 'react-icons/fa';
-
+ 
 interface SearchWithActionsProps {
   searchTerm: string;
   placeholder?: string;
   onSearchChange: (value: string) => void;
-  bulkActionButton?: React.ReactNode; // Optional bulk action button
+  bulkActionButton?: React.ReactNode;
 }
-
-/**
- * Unified search component with optional bulk action button
- * Used across User, Role, and Task management pages
- */
+ 
 const SearchWithActions: React.FC<SearchWithActionsProps> = ({
   searchTerm,
   placeholder = 'Search...',
@@ -29,14 +25,15 @@ const SearchWithActions: React.FC<SearchWithActionsProps> = ({
           placeholder={placeholder}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
-
+ 
       {/* Bulk Action Button (if provided) */}
       {bulkActionButton}
     </div>
   );
 };
-
+ 
 export default SearchWithActions;
+ 

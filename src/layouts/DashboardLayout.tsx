@@ -56,7 +56,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <Navbar user={user} onLogout={logout} onToggleSidebar={toggleSidebar} />
 
         {/* Page Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-2">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>
