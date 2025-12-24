@@ -39,7 +39,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const response = await authApi.getCurrentUser();
         if (response.success && response.user) {
           setUser(response.user);
-          // 🚨 Proactive guard: if server says inactive, logout immediately
           const status = (response.user as any)?.status;
           if (status === 'not available') {
             localStorage.removeItem('token');

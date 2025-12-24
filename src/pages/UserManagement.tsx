@@ -27,7 +27,6 @@ function UserManagementPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [limit] = useState(5);
 
-  // Debounce search term to reduce API calls
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const loadUsers = useCallback(async () => {
